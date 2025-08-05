@@ -34,7 +34,7 @@ export function IntegrationsSection({
   const activeCount = integrations.filter(i => i.isActive).length;
 
   return (
-    <div className="bg-dashboard-section">
+    <div className="bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Section header with stats */}
         <div className="mb-8">
@@ -132,10 +132,10 @@ export function IntegrationsSection({
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Activas</p>
-                <p className="text-2xl font-semibold text-integration-active">{activeCount}</p>
+                <p className="text-2xl font-semibold text-chart-2">{activeCount}</p>
               </div>
-              <div className="w-12 h-12 bg-integration-active/10 rounded-lg flex items-center justify-center">
-                <span className="text-integration-active text-sm">✓</span>
+              <div className="w-12 h-12 bg-chart-2/10 rounded-lg flex items-center justify-center">
+                <span className="text-chart-2 text-sm">✓</span>
               </div>
             </div>
           </div>

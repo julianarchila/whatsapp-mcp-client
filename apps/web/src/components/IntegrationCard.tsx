@@ -89,15 +89,15 @@ export function IntegrationCard({ integration, onToggle, onSave }: IntegrationCa
           <div className="flex items-center space-x-2">
             <span className={`text-xs px-2 py-1 rounded-full ${
               integration.isActive 
-                ? "bg-integration-active/10 text-integration-active" 
-                : "bg-integration-inactive/10 text-integration-inactive"
+                ? "bg-chart-2/10 text-chart-2" 
+                : "bg-destructive/10 text-destructive"
             }`}>
               {integration.isActive ? "Activa" : "Inactiva"}
             </span>
             <Switch
               checked={integration.isActive}
               onCheckedChange={handleToggle}
-              className="data-[state=checked]:bg-integration-active"
+              className="data-[state=checked]:bg-chart-2"
             />
           </div>
         </div>
