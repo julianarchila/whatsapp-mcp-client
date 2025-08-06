@@ -4,9 +4,10 @@ import { authClient } from "@/lib/auth-client"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 
-import { IntegrationsSection } from "@/components/IntegrationsSection"
+import { IntegrationsSection } from "@/components/integrations-section"
 import { mockIntegrations } from "./integrations.data"
-import type { Integration } from "@/components/IntegrationCard"
+import type { Integration } from "@/components/integration-card"
+import { AddToolForm } from "@/components/integration-form"
 
 export default function Dashboard() {
   const [integrations, setIntegrations] = useState<Integration[]>(mockIntegrations)
@@ -48,6 +49,9 @@ export default function Dashboard() {
         integrations={integrations}
         onToggleIntegration={handleToggleIntegration}
         onConfigureIntegration={handleConfigureIntegration}
+      />
+      <AddToolForm 
+        onAddTool={() => {}}
       />
     </div>
   )
