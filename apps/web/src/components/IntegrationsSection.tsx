@@ -1,42 +1,39 @@
-import { Search, Filter } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { IntegrationCard, type Integration } from "./IntegrationCard";
-import { useState } from "react";
+"use client"
+
+import { useState } from "react"
+import { Search, Filter } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { IntegrationCard, type Integration } from "./IntegrationCard"
 
 interface IntegrationsSectionProps {
-  integrations: Integration[];
-  onToggleIntegration: (id: string, isActive: boolean) => void;
-  onSaveConfig: (id: string, config: Record<string, string>) => void;
+  integrations: Integration[]
+  onToggleIntegration: (id: string) => void
+  onConfigureIntegration: (id: string) => void
 }
 
-/**
- * Main section component that displays all available integrations
- * Includes search and filter functionality
- */
-export function IntegrationsSection({ 
-  integrations, 
-  onToggleIntegration, 
-  onSaveConfig 
+export function IntegrationsSection({
+  integrations,
+  onToggleIntegration,
+  onConfigureIntegration,
 }: IntegrationsSectionProps) {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [showActiveOnly, setShowActiveOnly] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("")
+  const [showActiveOnly, setShowActiveOnly] = useState(false)
 
-  // Filter integrations based on search term and active filter
-  const filteredIntegrations = integrations.filter(integration => {
-    const matchesSearch = integration.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         integration.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = !showActiveOnly || integration.isActive;
-    
-    return matchesSearch && matchesFilter;
-  });
+  const filteredIntegrations = integrations.filter((integration) => {
+    const matchesSearch =
+      integration.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      integration.description.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesFilter = !showActiveOnly || integration.isActive
+    return matchesSearch && matchesFilter
+  })
 
-  const activeCount = integrations.filter(i => i.isActive).length;
+  const activeCount = integrations.filter((i) => i.isActive).length
 
   return (
     <div className="bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Section header with stats */}
+        {/* Header */}
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
@@ -44,22 +41,19 @@ export function IntegrationsSection({
                 Integraciones disponibles
               </h2>
               <p className="text-muted-foreground mt-1">
-                {activeCount} de {integrations.length} integraciones activas
+                {activeCount} de {integrations.length} activas
               </p>
             </div>
-            
-            {/* Search and filter controls */}
             <div className="flex items-center space-x-3">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar integración..."
+                  placeholder="Buscar integración…"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10 w-64"
                 />
               </div>
-              
               <Button
                 variant={showActiveOnly ? "default" : "outline"}
                 size="sm"
@@ -73,15 +67,15 @@ export function IntegrationsSection({
           </div>
         </div>
 
-        {/* Integrations grid */}
+        {/* Grid */}
         {filteredIntegrations.length > 0 ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6">
             {filteredIntegrations.map((integration) => (
               <IntegrationCard
                 key={integration.id}
                 integration={integration}
                 onToggle={onToggleIntegration}
-                onSave={onSaveConfig}
+                onConfigure={onConfigureIntegration}
               />
             ))}
           </div>
@@ -94,18 +88,17 @@ export function IntegrationsSection({
               No se encontraron integraciones
             </h3>
             <p className="text-muted-foreground">
-              {searchTerm 
+              {searchTerm
                 ? `No hay integraciones que coincidan con "${searchTerm}"`
-                : "No hay integraciones activas"
-              }
+                : "No hay integraciones disponibles"}
             </p>
             {(searchTerm || showActiveOnly) && (
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="mt-4"
                 onClick={() => {
-                  setSearchTerm("");
-                  setShowActiveOnly(false);
+                  setSearchTerm("")
+                  setShowActiveOnly(false)
                 }}
               >
                 Limpiar filtros
@@ -113,48 +106,7 @@ export function IntegrationsSection({
             )}
           </div>
         )}
-
-        {/* Quick stats */}
-        <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-6">
-          <div className="bg-card border border-card-border rounded-lg p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Total</p>
-                <p className="text-2xl font-semibold text-foreground">{integrations.length}</p>
-              </div>
-              <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center">
-                <span className="text-muted-foreground text-sm">🔗</span>
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-card border border-card-border rounded-lg p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Activas</p>
-                <p className="text-2xl font-semibold text-chart-2">{activeCount}</p>
-              </div>
-              <div className="w-12 h-12 bg-chart-2/10 rounded-lg flex items-center justify-center">
-                <span className="text-chart-2 text-sm">✓</span>
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-card border border-card-border rounded-lg p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Disponibles</p>
-                <p className="text-2xl font-semibold text-muted-foreground">
-                  {integrations.length - activeCount}
-                </p>
-              </div>
-              <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center">
-                <span className="text-muted-foreground text-sm">⏸</span>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
-  );
+  )
 }
