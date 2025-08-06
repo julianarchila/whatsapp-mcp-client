@@ -47,11 +47,12 @@ export default function Dashboard() {
     <div className="min-h-screen bg-background">
       <IntegrationsSection
         integrations={integrations}
+        setIntegrations={setIntegrations}
         onToggleIntegration={handleToggleIntegration}
         onConfigureIntegration={handleConfigureIntegration}
       />
-      <AddToolForm 
-        onAddTool={() => {}}
+      <AddToolForm
+        onAddTool={() => { }}
       />
     </div>
   )

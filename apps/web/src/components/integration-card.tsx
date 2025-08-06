@@ -30,14 +30,17 @@ export function IntegrationCard({
     <Card className="transition-all hover:shadow-md">
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4 flex-1">
-            <div className="p-2 bg-muted rounded-lg">
-              <IconComponent className="h-6 w-6" />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm text-muted-foreground">
-                {integration.description}
-              </p>
+          <div className="flex flex-col">
+            <h3 className="pb-1 bold text-lg">{integration.name}</h3>
+            <div className="flex items-center gap-4 flex-1">
+              <div className="p-2 bg-muted rounded-lg">
+                <IconComponent className="h-6 w-6" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm text-muted-foreground">
+                  {integration.description}
+                </p>
+              </div>
             </div>
           </div>
 

@@ -94,7 +94,7 @@ export function AddToolForm({ onAddTool }: AddToolFormProps) {
             Nueva Integración
           </CardTitle>
           <CardDescription>
-            Completa la información de tu herramienta para crear una integración personalizada
+            Completa la información de tu herramienta
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -106,7 +106,6 @@ export function AddToolForm({ onAddTool }: AddToolFormProps) {
             }}
             className="space-y-6"
           >
-            {/* Campo Nombre */}
             <div>
               <form.Field name="name">
                 {(field) => (
@@ -168,20 +167,19 @@ export function AddToolForm({ onAddTool }: AddToolFormProps) {
               </form.Field>
             </div>
 
-            {/* Campo URL */}
             <div>
               <form.Field name="url">
                 {(field) => (
                   <div className="space-y-2">
                     <Label htmlFor={field.name}>
-                      URL del MCP
+                      URL de la API
                       <span className="text-red-500 ml-1">*</span>
                     </Label>
                     <Input
                       id={field.name}
                       name={field.name}
                       type="url"
-                      placeholder="https://api.miherramienta.com"
+                      placeholder="https://api.miherramienta.com/mcp"
                       value={field.state.value}
                       onBlur={field.handleBlur}
                       onChange={(e) => field.handleChange(e.target.value)}
@@ -208,7 +206,6 @@ export function AddToolForm({ onAddTool }: AddToolFormProps) {
                   <div className="space-y-2">
                     <Label htmlFor={field.name}>
                       API Key
-                      <span className="text-red-500 ml-1">*</span>
                     </Label>
                     <Input
                       id={field.name}

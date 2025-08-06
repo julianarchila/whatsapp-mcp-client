@@ -1,40 +1,25 @@
 import {
   Github,
-  Mail,
-  MessageSquare,
-  Calendar,
-  Database,
-  Slack,
-  Zap,
-  FileText,
-  ShoppingCart,
-  CreditCard,
+  CloudSun
 } from "lucide-react";
-import type { Integration } from "@/components/IntegrationCard";
+import type { Integration } from "@/components/integration-card";
 
 /**
  * Mock data for available integrations
  */
 export const mockIntegrations: Integration[] = [
   {
+    id: "weather-mcp",
+    name: "Clima",
+    description: "Conoce el clima de la ciudad que quiereas, con tan solo el nombre.",
+    icon: CloudSun,
+    isActive: true,
+  },
+  {
     id: "github",
-    name: "GitHub",
+    name: "Github",
     description: "Sincroniza repositorios y gestiona pull requests automáticamente",
     icon: Github,
-    isActive: true,
-  },
-  {
-    id: "google-calendar",
-    name: "Google Calendar",
-    description: "Sincroniza eventos y programa reuniones automáticamente",
-    icon: Calendar,
-    isActive: true,
-  },
-  {
-    id: "notion",
-    name: "Notion",
-    description: "Crea y actualiza páginas, bases de datos y contenido",
-    icon: FileText,
     isActive: true,
   },
 ];

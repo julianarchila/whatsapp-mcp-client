@@ -1,24 +1,45 @@
 "use client"
 
 import { useState } from "react"
-import { Search, Filter } from "lucide-react"
+import { Search, Filter, Zap } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { IntegrationCard, type Integration } from "./integration-card"
+import { DiscoverToolsModal } from "./discover-tools-modal"
 
 interface IntegrationsSectionProps {
   integrations: Integration[]
+  setIntegrations: React.Dispatch<React.SetStateAction<Integration[]>>
   onToggleIntegration: (id: string) => void
   onConfigureIntegration: (id: string) => void
 }
 
+const AVAILABLE_TOOLS = [
+  {
+    id: "figma",
+    name: "Figma",
+    description: "Design collaboratively with your team.",
+    icon: Zap,
+    category: "Design",
+  },
+  {
+    id: "jira",
+    name: "Jira",
+    description: "Track and manage your team's projects.",
+    icon: Zap,
+    category: "Productivity",
+  },
+];
+
 export function IntegrationsSection({
   integrations,
+  setIntegrations,
   onToggleIntegration,
   onConfigureIntegration,
 }: IntegrationsSectionProps) {
   const [searchTerm, setSearchTerm] = useState("")
   const [showActiveOnly, setShowActiveOnly] = useState(false)
+  const [showDiscoverModal, setShowDiscoverModal] = useState(false)
 
   const filteredIntegrations = integrations.filter((integration) => {
     const matchesSearch =
@@ -37,12 +58,13 @@ export function IntegrationsSection({
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h2 className="text-2xl font-semibold text-foreground">
-                Integraciones disponibles
-              </h2>
-              <p className="text-muted-foreground mt-1">
-                {activeCount} de {integrations.length} activas
-              </p>
+              <Button
+                variant="outline"
+                onClick={() => setShowDiscoverModal(true)}
+                className="ml-4"
+              >
+                Descubre herramientas
+              </Button>
             </div>
             <div className="flex items-center space-x-3">
               <div className="relative">
@@ -107,6 +129,28 @@ export function IntegrationsSection({
           </div>
         )}
       </div>
+
+      <DiscoverToolsModal
+        open={showDiscoverModal}
+        onOpenChange={setShowDiscoverModal}
+        onAddTool={(toolId) => {
+          // Add the tool to integrations when user clicks
+          const newTool = AVAILABLE_TOOLS.find(tool => tool.id === toolId)
+          if (newTool) {
+            const integration = {
+              id: newTool.id,
+              name: newTool.name,
+              description: newTool.description,
+              icon: newTool.icon,
+              category: newTool.category,
+              isActive: false,
+              isConfigured: false,
+            }
+            setIntegrations(prev => [...prev, integration])
+            setShowDiscoverModal(false)
+          }
+        }}
+      />
     </div>
   )
 }
