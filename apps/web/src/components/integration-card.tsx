@@ -51,7 +51,7 @@ export function IntegrationCard({
               size="sm"
               onClick={() => onConfigure(integration.id)}
             >
-              Configurar
+              Configure
             </Button>
             <Switch
               checked={integration.isActive}

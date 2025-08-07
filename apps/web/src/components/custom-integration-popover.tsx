@@ -29,26 +29,26 @@ export function CustomIntegrationPopover({ onAddTool }: CustomIntegrationPopover
 
                 onAddTool(value)
 
-                toast.success("¡Herramienta añadida exitosamente!")
+                toast.success("Tool added successfully!")
 
                 form.reset()
                 setOpen(false)
             } catch (error) {
                 console.error("Error:", error)
-                toast.error("Error al añadir la herramienta")
+                toast.error("Error adding tool")
             }
         },
         validators: {
             onSubmit: z.object({
                 name: z.string()
-                    .min(1, "El nombre es obligatorio")
-                    .min(2, "El nombre debe tener al menos 2 caracteres"),
+                    .min(1, "Name is required")
+                    .min(2, "Name must be at least 2 characters"),
                 url: z.string()
-                    .min(1, "La URL es obligatoria")
-                    .url("Por favor ingresa una URL válida"),
+                    .min(1, "URL is required")
+                    .url("Please enter a valid URL"),
                 apiKey: z.string()
-                    .min(1, "La API Key es obligatoria")
-                    .min(8, "La API Key debe tener al menos 8 caracteres"),
+                    .min(1, "API Key is required")
+                    .min(8, "API Key must be at least 8 characters"),
             }),
         },
     })
@@ -65,15 +65,15 @@ export function CustomIntegrationPopover({ onAddTool }: CustomIntegrationPopover
             <PopoverTrigger asChild>
                 <Button variant="outline">
                     <Plus className="h-4 w-4 mr-2" />
-                    Añadir integración
+                    Add Integration
                 </Button>
             </PopoverTrigger>
             <PopoverContent className="w-80 p-4" align="start">
                 <div className="space-y-4">
                     <div className="space-y-2">
-                        <h4 className="font-medium leading-none">Nueva integración</h4>
+                        <h4 className="font-medium leading-none">New Integration</h4>
                         <p className="text-sm text-muted-foreground">
-                            Añade tu herramienta personalizada
+                            Add your custom tool
                         </p>
                     </div>
 
@@ -90,12 +90,12 @@ export function CustomIntegrationPopover({ onAddTool }: CustomIntegrationPopover
                                 {(field) => (
                                     <div className="space-y-1">
                                         <Label htmlFor={field.name} className="text-xs">
-                                            Nombre
+                                            Name
                                         </Label>
                                         <Input
                                             id={field.name}
                                             name={field.name}
-                                            placeholder="Mi herramienta"
+                                            placeholder="My tool"
                                             value={field.state.value}
                                             onBlur={field.handleBlur}
                                             onChange={(e) => field.handleChange(e.target.value)}
@@ -120,13 +120,13 @@ export function CustomIntegrationPopover({ onAddTool }: CustomIntegrationPopover
                                 {(field) => (
                                     <div className="space-y-1">
                                         <Label htmlFor={field.name} className="text-xs">
-                                            URL API
+                                            API URL
                                         </Label>
                                         <Input
                                             id={field.name}
                                             name={field.name}
                                             type="url"
-                                            placeholder="https://api.ejemplo.com/mcp"
+                                            placeholder="https://api.example.com/mcp"
                                             value={field.state.value}
                                             onBlur={field.handleBlur}
                                             onChange={(e) => field.handleChange(e.target.value)}
@@ -146,7 +146,6 @@ export function CustomIntegrationPopover({ onAddTool }: CustomIntegrationPopover
                             </form.Field>
                         </div>
 
-                        {/* Campo API Key */}
                         <div>
                             <form.Field name="apiKey">
                                 {(field) => (
@@ -187,7 +186,7 @@ export function CustomIntegrationPopover({ onAddTool }: CustomIntegrationPopover
                                         disabled={!state.canSubmit || state.isSubmitting}
                                         className="h-8"
                                     >
-                                        {state.isSubmitting ? "Añadiendo..." : "Añadir"}
+                                        {state.isSubmitting ? "Adding..." : "Add"}
                                     </Button>
                                 )}
                             </form.Subscribe>

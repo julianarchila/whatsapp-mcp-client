@@ -55,7 +55,7 @@ export function IntegrationsSection({
       id: `custom-${Date.now()}`,
       name: toolData.name,
       icon: Zap,
-      category: "Personalizada",
+      category: "Custom",
       isActive: false,
     }
     setIntegrations(prev => [...prev, newIntegration])
@@ -75,7 +75,7 @@ export function IntegrationsSection({
                 onClick={() => setShowDiscoverModal(true)}
                 className="ml-4"
               >
-                Descubrir integraciones
+                Discover Integrations
               </Button>
               <CustomIntegrationPopover onAddTool={handleAddCustomTool} />
             </div>
@@ -83,7 +83,7 @@ export function IntegrationsSection({
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar integración…"
+                  placeholder="Search integration..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10 w-64"
@@ -96,7 +96,7 @@ export function IntegrationsSection({
                 className="flex items-center space-x-2 mr-4"
               >
                 <Filter className="w-4 h-4" />
-                <span>{showActiveOnly ? "Todas" : "Solo activas"}</span>
+                <span>{showActiveOnly ? "Show All" : "Active Only"}</span>
               </Button>
             </div>
           </div>
@@ -120,12 +120,12 @@ export function IntegrationsSection({
               <Search className="w-8 h-8 text-muted-foreground" />
             </div>
             <h3 className="text-lg font-medium text-foreground mb-2">
-              No se encontraron integraciones
+              No integrations found
             </h3>
             <p className="text-muted-foreground">
               {searchTerm
-                ? `No hay integraciones que coincidan con "${searchTerm}"`
-                : "No hay integraciones disponibles"}
+                ? `No integrations match "${searchTerm}"`
+                : "No integrations available"}
             </p>
             {(searchTerm || showActiveOnly) && (
               <Button
@@ -136,7 +136,7 @@ export function IntegrationsSection({
                   setShowActiveOnly(false)
                 }}
               >
-                Limpiar filtros
+                Clear filters
               </Button>
             )}
           </div>
