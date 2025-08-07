@@ -1,197 +1,169 @@
 "use client"
 
-import Link from "next/link"
-import { motion, useScroll, useTransform } from "framer-motion"
-import {
-  ArrowRight,
-  Check,
-  MessageCircle,
-  Settings,
-  Rocket,
-  Sparkles,
-  Mail,
-  Calendar,
-  Dumbbell,
-  FileText,
-  Search,
-  NotebookPen,
-} from "lucide-react"
-import { useRef } from "react"
+import NextLink from "next/link"
+import PhoneMockup from "@/components/phone-mockup"
+import { ArrowRight, Check, ChevronRight, MessageCircle, Mic, Calendar, Globe2, ShieldCheck, Zap, Bot, Mail, TerminalSquare, Star, Lock, ExternalLink, Wrench, Network, Link2 } from 'lucide-react'
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { Separator } from "@/components/ui/separator"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { cn } from "@/lib/utils"
+import ThemeToggle from "@/components/theme-toggle"
 
-// tiny classnames helper
-function cn(...cls: (string | false | null | undefined)[]) {
-  return cls.filter(Boolean).join(" ")
-}
-
-export default function HomePage() {
-  return (
-    <main className="min-h-dvh bg-gradient-to-b from-white via-white to-slate-50 text-slate-900 antialiased">
-      <Header />
-      <Hero />
-      <HowItWorks />
-      <UseCaseGrid />
-      <Why />
-      <CtaFooter />
-    </main>
-  )
-}
+const WA_NUMBER = "5730278427172" // international format without +
+const WA_URL = `https://wa.me/${WA_NUMBER}?text=Hi%20Threadway%20%E2%9C%8C%EF%B8%8F`
 
 function Header() {
+  const NavLink = ({ href, children }: { href: string; children: React.ReactNode }) => (
+    <NextLink
+      href={href}
+      className="group relative px-1 py-0.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+    >
+      {children}
+      <span className="absolute inset-x-1 -bottom-1 h-px origin-left scale-x-0 bg-gradient-to-r from-emerald-400 to-teal-400 transition-transform group-hover:scale-x-100" />
+    </NextLink>
+  )
   return (
-    <header className="sticky top-0 z-40 backdrop-blur-xl bg-white/70 border-b border-slate-200/70">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <div className="h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-2xl bg-amber-400 shadow-[0_16px_40px_-18px_rgba(251,191,36,0.9)] grid place-items-center">
-              <Sparkles className="h-5 w-5 text-slate-950" />
+    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/60 backdrop-blur supports-[backdrop-filter]:bg-background/50">
+      <div className="mx-auto max-w-7xl px-4 py-3 md:py-4">
+        <div className="flex items-center justify-between">
+          <NextLink href="#top" className="flex items-center gap-2">
+            <div className="grid h-8 w-8 place-items-center rounded-md bg-gradient-to-br from-emerald-600 to-teal-600 text-white shadow-sm">
+              <span className="text-sm font-bold">T</span>
             </div>
-            <span className="font-semibold tracking-tight text-slate-950">threadway</span>
-            <KnotBadge className="hidden sm:inline-flex">MCP inside</KnotBadge>
-          </div>
-          <nav className="hidden md:flex items-center gap-6 text-sm">
-            <a href="#how" className="text-slate-700 hover:text-slate-950">What it does</a>
-            <a href="#use-cases" className="text-slate-700 hover:text-slate-950">Use cases</a>
-            <a href="#why" className="text-slate-700 hover:text-slate-950">Why</a>
+            <span className="font-semibold tracking-tight">Threadway</span>
+          </NextLink>
+          <nav className="hidden items-center gap-5 md:flex">
+            <NavLink href="#how-it-works">How it works</NavLink>
+            <NavLink href="#features">Features</NavLink>
+            <NavLink href="#pricing">Pricing</NavLink>
+            <NavLink href="#security">Security</NavLink>
+            <NavLink href="#faq">FAQ</NavLink>
           </nav>
-          <ThreadButton asChild>
-            <Link href="WA_LINK">Message threadway</Link>
-          </ThreadButton>
+          <div className="flex items-center gap-2">
+            <Button asChild size="sm" variant="outline" className="hidden md:inline-flex">
+              <NextLink href="#how-it-works">
+                See how it works
+                <ChevronRight className="ml-1 h-4 w-4" />
+              </NextLink>
+            </Button>
+            <ThemeToggle />
+            <Button
+              asChild
+              size="sm"
+              className="bg-gradient-to-r from-emerald-600 to-teal-600 shadow-[0_8px_24px_-8px_rgba(16,185,129,0.65)] transition-transform hover:scale-[1.01] hover:from-emerald-600 hover:to-teal-600"
+            >
+              <a href={WA_URL} target="_blank" rel="noreferrer">
+                Start on WhatsApp
+                <ArrowRight className="ml-1 h-4 w-4" />
+              </a>
+            </Button>
+          </div>
         </div>
       </div>
     </header>
   )
 }
 
-function Hero() {
-  const ref = useRef<HTMLDivElement>(null)
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] })
-  const y1 = useTransform(scrollYProgress, [0, 1], [30, -30])
-  const y2 = useTransform(scrollYProgress, [0, 1], [-18, 18])
-
+function AmbientHeroBackground() {
   return (
-    <section ref={ref} className="relative overflow-hidden">
-      {/* low-contrast ambient orbs */}
-      <motion.div
-        aria-hidden
-        className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-[880px] h-[880px] rounded-full bg-amber-200 blur-3xl"
-        style={{ opacity: 0.08, y: y1, mixBlendMode: "multiply" as any }}
-      />
-      <motion.div
-        aria-hidden
-        className="pointer-events-none absolute -bottom-28 -right-24 w-[560px] h-[560px] rounded-full bg-indigo-200 blur-3xl"
-        style={{ opacity: 0.07, y: y2, mixBlendMode: "multiply" as any }}
-      />
-      {/* optional grain */}
-      <div aria-hidden className="pointer-events-none absolute inset-0 opacity-[0.03] mix-blend-multiply" style={{ backgroundImage: "url(/noise.png)" }} />
+    <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+      <div className="absolute left-1/2 top-[-120px] h-[700px] w-[1200px] -translate-x-1/2 rounded-[100%] bg-[radial-gradient(ellipse_at_center,rgba(16,185,129,0.18),rgba(20,184,166,0.10),transparent_60%)] blur-0" />
+      <div className="absolute -left-24 top-40 h-[420px] w-[420px] rounded-full bg-[radial-gradient(circle_at_center,rgba(45,212,191,0.20),transparent_60%)] blur-2xl" />
+      <div className="absolute -right-32 top-80 h-[520px] w-[520px] rounded-[60%] bg-[radial-gradient(ellipse_at_center,rgba(5,150,105,0.18),transparent_60%)] blur-2xl" />
+      <div className="absolute inset-0 bg-[linear-gradient(to_bottom_right,transparent,rgba(255,255,255,0.6)_12%,transparent_32%)] opacity-40 dark:opacity-20" />
+    </div>
+  )
+}
 
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 py-18 sm:py-24">
-        <div className="grid lg:grid-cols-12 gap-10 items-center">
-          <motion.div
-            className="lg:col-span-6"
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.6 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
-          >
-            {/* high-contrast content panel */}
-            <div className="rounded-3xl bg-white/90 backdrop-blur-sm ring-1 ring-black/5 p-6 sm:p-8 shadow-[0_10px_30px_-20px_rgba(0,0,0,0.3)]">
-              <KnotBadge className="bg-amber-100 text-amber-800 border-amber-200">In WhatsApp</KnotBadge>
-              <h1 className="mt-4 text-5xl sm:text-6xl font-extrabold tracking-tight leading-[1.05] text-slate-950">
-                Your Personal Helper—In WhatsApp
-              </h1>
-              <p className="mt-4 text-lg sm:text-xl text-slate-800">
-                No new apps. No tech headaches. Threads that pull tasks together.
-              </p>
-              <p className="mt-3 text-sm text-slate-600 italic">
-                Power users: We use MCP—like USB‑C for AI—to plug your helper into services you use.
-              </p>
-              <div className="mt-8 flex flex-col sm:flex-row gap-3 sm:items-center">
-                <ThreadButton asChild size="lg">
-                  <Link href="WA_LINK">
-                    Message threadway
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Link>
-                </ThreadButton>
-                <OutlineButton asChild size="lg">
-                  <a href="#how">What it does</a>
-                </OutlineButton>
+function Hero() {
+  return (
+    <section id="top" className="relative overflow-hidden">
+      <AmbientHeroBackground />
+      <div className="mx-auto max-w-7xl px-4 pb-16 pt-10 md:pb-24 md:pt-16">
+        <div className="grid items-center gap-12 md:grid-cols-2">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200/60 bg-emerald-50/60 px-2.5 py-1 text-xs text-emerald-900 backdrop-blur dark:border-emerald-400/30 dark:bg-emerald-950/40 dark:text-emerald-200">
+              <span className="inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400" />
+              No passwords • Start in WhatsApp
+            </div>
+            <h1 className="mt-4 text-balance text-4xl font-semibold tracking-tight sm:text-5xl">
+              Ask. It acts. All inside your WhatsApp thread.
+            </h1>
+            <p className="mt-4 text-pretty text-muted-foreground">
+              Threadway lets you talk to powerful LLMs and your tools from a single WhatsApp chat. Connect Gmail, Calendar,
+              Notion, GitHub and more through MCP, then write, schedule, and automate in plain language or voice notes—no
+              new app, no passwords.
+            </p>
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              <Button
+                asChild
+                size="lg"
+                className="bg-gradient-to-r from-emerald-600 to-teal-600 shadow-[0_16px_40px_-12px_rgba(16,185,129,0.65)] transition-transform hover:scale-[1.01]"
+              >
+                <a href={WA_URL} target="_blank" rel="noreferrer" aria-label="Start on WhatsApp">
+                  Start on WhatsApp
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </a>
+              </Button>
+              <Button asChild size="lg" variant="outline" className="backdrop-blur">
+                <NextLink href="#how-it-works">See how it works</NextLink>
+              </Button>
+            </div>
+
+            <div className="mt-6 grid w-full gap-3 text-sm text-muted-foreground sm:grid-cols-3">
+              <div className="flex items-center gap-2 rounded-md border border-emerald-200/50 bg-emerald-50/50 px-3 py-2 dark:border-emerald-400/20 dark:bg-emerald-950/30">
+                <ShieldCheck className="h-4 w-4 text-emerald-600" />
+                OAuth 2.0 connections
+              </div>
+              <div className="flex items-center gap-2 rounded-md border border-emerald-200/50 bg-emerald-50/50 px-3 py-2 dark:border-emerald-400/20 dark:bg-emerald-950/30">
+                <Globe2 className="h-4 w-4 text-emerald-600" />
+                40+ languages
+              </div>
+              <div className="flex items-center gap-2 rounded-md border border-emerald-200/50 bg-emerald-50/50 px-3 py-2 dark:border-emerald-400/20 dark:bg-emerald-950/30">
+                <Mic className="h-4 w-4 text-emerald-600" />
+                Voice notes supported
               </div>
             </div>
-          </motion.div>
-
-          <motion.div
-            className="lg:col-span-6"
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.5 }}
-            transition={{ duration: 0.6, ease: "easeOut", delay: 0.05 }}
-          >
-            <HeroChatMock />
-          </motion.div>
+          </div>
+          <div className="relative">
+            {/* Glow behind the phone */}
+            <div aria-hidden className="absolute left-1/2 top-6 -z-10 h-40 w-60 -translate-x-1/2 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(16,185,129,0.36),transparent_60%)] blur-2xl" />
+            <div className="transition-transform duration-700 ease-out hover:-translate-y-1">
+              <PhoneMockup />
+            </div>
+          </div>
         </div>
-
-        <ThreadLine className="mt-10 hidden sm:block" opacity={0.22} />
       </div>
     </section>
   )
 }
 
-function HeroChatMock() {
-  return (
-    <div className="mx-auto max-w-md">
-      <div className="relative">
-        <div className="rounded-[26px] overflow-hidden border border-slate-200 bg-white shadow-2xl">
-          <div className="bg-slate-950 text-slate-50 px-4 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="h-7 w-7 rounded-full bg-emerald-400 grid place-items-center text-slate-950 font-bold">W</div>
-              <div className="text-sm leading-tight">
-                <div className="font-semibold">threadway helper</div>
-                <div className="text-slate-300 text-xs">online</div>
-              </div>
-            </div>
-            <MessageCircle className="h-4 w-4 text-slate-300" />
-          </div>
-          <div className="bg-gradient-to-b from-white to-slate-50 px-4 py-5 space-y-3">
-            <ChatBubble from="ai">Hi! What can I help you do today?</ChatBubble>
-            <ChatBubble>Send an email to Alex that I’m running late 15 mins.</ChatBubble>
-            <ChatBubble from="ai">Got it — using Gmail via MCP. Want to add a friendly tone?</ChatBubble>
-            <ChatBubble>Yes, please.</ChatBubble>
-            <ChatBubble from="ai">Done. Sent! ✅</ChatBubble>
-          </div>
-          <div className="p-3 bg-white border-t border-slate-200">
-            <div className="rounded-full border border-slate-300 px-3 py-2 text-sm text-slate-600">Type a message…</div>
-          </div>
-        </div>
-
-        <div className="absolute -right-3 -top-3">
-          <KnotBadge className="bg-teal-600 text-white border-teal-600">⚡ MCP</KnotBadge>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function ChatBubble({
-  children,
-  from,
+function SectionHeader({
+  title,
+  subtitle,
+  eyebrow,
+  id,
+  center = false,
 }: {
-  children: React.ReactNode
-  from?: "ai" | "user"
+  title: string
+  subtitle?: string
+  eyebrow?: string
+  id?: string
+  center?: boolean
 }) {
-  const isAi = from === "ai"
   return (
-    <div className={cn("flex", isAi ? "" : "justify-end")}>
-      <div
-        className={cn(
-          "max-w-[80%] rounded-2xl px-4 py-2 text-sm shadow-sm relative",
-          isAi
-            ? "bg-emerald-50 text-slate-950 border border-emerald-200"
-            : "bg-white text-slate-950 border border-slate-300"
-        )}
-      >
-        <span className={cn("absolute -bottom-1 h-2 w-2 rounded-full bg-gradient-to-br from-amber-400 to-indigo-500", isAi ? "left-3" : "right-3")} />
-        {children}
-      </div>
+    <div id={id} className={cn("mx-auto", center ? "max-w-2xl text-center" : "max-w-2xl")}>
+      {eyebrow && (
+        <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200/60 bg-emerald-50/60 px-2.5 py-1 text-xs text-emerald-900 backdrop-blur dark:border-emerald-400/30 dark:bg-emerald-950/40 dark:text-emerald-200">
+          <span className="inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400" />
+          {eyebrow}
+        </div>
+      )}
+      <h2 className={cn("mt-2 text-3xl font-semibold tracking-tight sm:text-4xl", center && "mx-auto")}>{title}</h2>
+      {subtitle && <p className="mt-3 text-muted-foreground">{subtitle}</p>}
     </div>
   )
 }
@@ -199,59 +171,52 @@ function ChatBubble({
 function HowItWorks() {
   const steps = [
     {
-      icon: <MessageCircle className="h-6 w-6" />,
-      title: "Say Hi on WhatsApp",
-      desc: "Tap Start and drop us a message—no installs, no extra passwords.",
-      color: "bg-emerald-50 text-emerald-700 border-emerald-200",
+      icon: MessageCircle,
+      title: "Say hi on WhatsApp",
+      desc: "Your phone number is your account. No forms, no passwords—just a chat.",
     },
     {
-      icon: <Settings className="h-6 w-6" />,
-      title: "Style it, plug it in",
-      desc: `Pick a voice you like. Turn on integrations with MCP (Gmail, Notion, Instacart…).`,
-      color: "bg-sky-50 text-sky-700 border-sky-200",
-      badge: "⚡ MCP",
+      icon: Link2,
+      title: "Connect tools with one tap",
+      desc: "Threadway drops secure OAuth links right in the thread. Approve in your browser, return to chat.",
     },
     {
-      icon: <Rocket className="h-6 w-6" />,
-      title: "Get stuff done",
-      desc: "Email, reminders, receipts, workouts, file search—just chat it. Your helper handles the rest.",
-      color: "bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200",
+      icon: Bot,
+      title: "Ask. It acts.",
+      desc: '"Email my last invoice to Laura." "Schedule a 30‑min call next Tuesday." "Summarize my day."',
     },
   ]
 
   return (
-    <section id="how" className="py-20">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-950">What it does</h2>
-          <p className="mt-3 text-slate-700">Three steps. Zero friction.</p>
-        </div>
-        <div className="relative">
-          <ThreadLine className="absolute -top-6 left-1/2 -translate-x-1/2 w-[720px] hidden md:block" opacity={0.2} />
-          <div className="grid md:grid-cols-3 gap-6 relative">
-            {steps.map((s, i) => (
-              <motion.div
-                key={i}
-                className={cn(
-                  "group relative rounded-3xl border bg-white p-6 transition-all",
-                  "hover:shadow-xl hover:-translate-y-1",
-                  s.color.replace("text-", "border-"),
-                )}
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.4 }}
-                transition={{ duration: 0.5, ease: "easeOut", delay: i * 0.05 }}
-              >
-                <div className={cn("inline-flex items-center justify-center h-12 w-12 rounded-2xl border", s.color)}>
-                  {s.icon}
+    <section id="how-it-works" className="relative">
+      <div className="mx-auto max-w-7xl px-4 py-16 md:py-20">
+        <SectionHeader
+          center
+          title="How it works"
+          subtitle="Onboard in under two minutes, connect services when you need them, and handle everything in one persistent WhatsApp thread."
+        />
+        {/* Timeline on mobile, cards on larger screens */}
+        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {steps.map((s, i) => (
+            <Card key={i} className="border-muted/60 transition-all hover:-translate-y-[2px] hover:shadow-md">
+              <CardHeader>
+                <div className="mb-3 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-100 to-teal-100 text-emerald-700 ring-1 ring-inset ring-emerald-300/40 dark:from-emerald-900/30 dark:to-teal-900/30 dark:text-emerald-200 dark:ring-emerald-500/20">
+                  <s.icon className="h-5 w-5" />
                 </div>
-                {s.badge && (
-                  <KnotBadge className="ml-2 mt-2 bg-teal-600 text-white border-teal-600">{s.badge}</KnotBadge>
-                )}
-                <h3 className="mt-4 font-semibold text-lg text-slate-950">{s.title}</h3>
-                <p className="mt-2 text-slate-700">{s.desc}</p>
-              </motion.div>
-            ))}
+                <CardTitle className="text-lg">{s.title}</CardTitle>
+                <CardDescription>{s.desc}</CardDescription>
+              </CardHeader>
+            </Card>
+          ))}
+        </div>
+        <div className="mt-8 grid gap-4 text-sm text-muted-foreground sm:grid-cols-2">
+          <div className="flex items-center gap-2">
+            <Mic className="h-4 w-4 text-emerald-600" />
+            Voice‑first: send a voice note, Threadway transcribes and acts.
+          </div>
+          <div className="flex items-center gap-2">
+            <TerminalSquare className="h-4 w-4 text-emerald-600" />
+            In‑chat commands: /plan, /quota, /forgetme, /help
           </div>
         </div>
       </div>
@@ -259,79 +224,302 @@ function HowItWorks() {
   )
 }
 
-function UseCaseGrid() {
-  const cases = [
-    { icon: Mail, label: "Shoot off an email", bg: "bg-sky-50 hover:bg-sky-100" },
-    { icon: Calendar, label: "Set a reminder", bg: "bg-amber-50 hover:bg-amber-100" },
-    { icon: Dumbbell, label: "Log my workout", bg: "bg-emerald-50 hover:bg-emerald-100" },
-    { icon: FileText, label: "Summarize a receipt", bg: "bg-rose-50 hover:bg-rose-100" },
-    { icon: Search, label: "Search your files", bg: "bg-teal-50 hover:bg-teal-100" },
-    { icon: NotebookPen, label: "Draft a note", bg: "bg-violet-50 hover:bg-violet-100" },
+function ValueForAll() {
+  const bullets = [
+    { icon: Mail, text: "Send emails, replies, and summaries without opening your inbox." },
+    { icon: Calendar, text: "Schedule meetings, reminders, and daily briefings in seconds." },
+    { icon: Globe2, text: "Chat naturally in 40+ languages—no special syntax required." },
+    { icon: Wrench, text: "Power users: bring your MCP tools—configure, test, and invoke by name." },
   ]
   return (
-    <section id="use-cases" className="py-20">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-5">
-          {cases.map((c, i) => (
-            <motion.div
-              key={i}
-              className={cn(
-                "rounded-3xl border border-slate-300 p-5 transition-all bg-white/95",
-                "hover:-translate-y-1 hover:shadow-2xl",
-                c.bg
-              )}
-              initial={{ opacity: 0, y: 18 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.25 }}
-              transition={{ duration: 0.5, ease: "easeOut", delay: i * 0.04 }}
-            >
-              <div className="flex items-center gap-3">
-                <div className="h-11 w-11 rounded-2xl bg-white border border-slate-200 grid place-items-center">
-                  <c.icon className="h-5 w-5 text-slate-900" />
-                </div>
-                <div className="font-semibold text-slate-950">{c.label}</div>
+    <section className="relative">
+      <div className="mx-auto max-w-7xl px-4 py-16 md:py-20">
+        <div className="grid items-center gap-10 lg:grid-cols-2">
+          <div>
+            <SectionHeader
+              title="Simple for everyone. Powerful for experts."
+              subtitle="If you've ever texted a human assistant, you already know how to use Threadway. And if you know MCP, you'll love how fast it is to wire up tools and invoke them directly from WhatsApp."
+            />
+            <ul className="mt-6 grid gap-3">
+              {bullets.map((b, i) => (
+                <li key={i} className="flex items-start gap-3">
+                  <div className="mt-1 rounded-md bg-gradient-to-br from-emerald-100 to-teal-100 p-1.5 text-emerald-700 ring-1 ring-inset ring-emerald-300/40 dark:from-emerald-900/30 dark:to-teal-900/30 dark:text-emerald-200 dark:ring-emerald-500/20">
+                    <b.icon className="h-4 w-4" />
+                  </div>
+                  <span className="text-sm">{b.text}</span>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-6">
+              <Button
+                asChild
+                className="bg-gradient-to-r from-emerald-600 to-teal-600 shadow-[0_12px_28px_-12px_rgba(16,185,129,0.65)] transition-transform hover:scale-[1.01]"
+              >
+                <a href={WA_URL} target="_blank" rel="noreferrer">
+                  Start on WhatsApp
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </a>
+              </Button>
+            </div>
+          </div>
+          <Card className="overflow-hidden border-border bg-card">
+            <CardHeader>
+              <CardTitle>What is MCP?</CardTitle>
+              <CardDescription>
+                Model Context Protocol (MCP) is an open standard for letting AI models securely "think and act" with
+                external tools—like your email, calendar, docs, repos, and internal APIs—without hard‑coding integrations
+                into a single app.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-3 text-sm">
+              <div className="flex items-start gap-2">
+                <Check className="mt-0.5 h-4 w-4 text-emerald-600" />
+                <span>Bring any MCP‑compatible connector. Configure once, invoke from WhatsApp by name.</span>
               </div>
-              <p className="text-sm text-slate-700 mt-2">Try it by just asking in chat.</p>
-            </motion.div>
+              <div className="flex items-start gap-2">
+                <Check className="mt-0.5 h-4 w-4 text-emerald-600" />
+                <span>Threadway handles auth and execution, the LLM handles intent and content.</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <Check className="mt-0.5 h-4 w-4 text-emerald-600" />
+                <span>Power users can optionally manage connectors in a lightweight web dashboard.</span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function Features() {
+  const features = [
+    { icon: MessageCircle, title: "WhatsApp‑native", desc: "Stay in the app you use every day. One persistent thread for everything." },
+    { icon: Lock, title: "Secure OAuth 2.0", desc: "One‑tap links in chat. Approve in your browser—no passwords shared in WhatsApp." },
+    { icon: Mic, title: "Voice notes", desc: "Record and go. We transcribe and act on your request automatically." },
+    { icon: Calendar, title: "Automations", desc: "Recurring reminders and daily briefings delivered right in chat." },
+    { icon: Globe2, title: "Multilingual", desc: "40+ languages supported and accessible from the first message." },
+    { icon: TerminalSquare, title: "In‑chat commands", desc: "/plan, /quota, /forgetme, /help—no dashboard required." },
+    { icon: Network, title: "Open MCP layer", desc: "Connect Gmail, Calendar, Notion, GitHub, CRMs, and internal tools." },
+    { icon: Zap, title: "Fast onboarding", desc: "Say hi and you're in. Phone‑number authentication—no sign‑up flow." },
+  ]
+  return (
+    <section id="features" className="relative">
+      <div className="mx-auto max-w-7xl px-4 py-16 md:py-20">
+        <SectionHeader center title="Features" subtitle="Everything you expect from a real assistant—powered by LLMs and your tools." />
+        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {features.map((f, i) => (
+            <Card
+              key={i}
+              className="border-muted/60 transition-all hover:-translate-y-[2px] hover:shadow-md hover:shadow-emerald-100 dark:hover:shadow-emerald-900/30"
+            >
+              <CardHeader className="pb-2">
+                <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-100 to-teal-100 text-emerald-700 ring-1 ring-inset ring-emerald-300/40 dark:from-emerald-900/30 dark:to-teal-900/30 dark:text-emerald-200 dark:ring-emerald-500/20">
+                  <f.icon className="h-5 w-5" />
+                </div>
+                <CardTitle className="text-base">{f.title}</CardTitle>
+                <CardDescription>{f.desc}</CardDescription>
+              </CardHeader>
+            </Card>
           ))}
         </div>
-        <p className="text-center text-sm text-slate-600 mt-6">
-          MCP‑powered: swap in any service that speaks JSON‑RPC.
+      </div>
+    </section>
+  )
+}
+
+function Pricing() {
+  const plans = [
+    {
+      name: "Free",
+      price: "$0",
+      blurb: "Get started in minutes.",
+      features: ["30 messages / month", "Up to 3 MCP connectors", "Voice notes", "In‑chat commands"],
+      cta: "Start on WhatsApp",
+      highlight: false,
+    },
+    {
+      name: "Pro",
+      price: "$12",
+      suffix: "/month",
+      blurb: "For busy individuals.",
+      features: ["500 messages / month", "Up to 5 MCP connectors", "Automations & briefings", "Priority queueing"],
+      cta: "Start on WhatsApp",
+      highlight: true,
+    },
+    {
+      name: "Power",
+      price: "$39",
+      suffix: "/month",
+      blurb: "For power users and teams.",
+      features: ["Unlimited messages", "Unlimited MCP connectors", "Priority support", "Advanced rate limits"],
+      cta: "Start on WhatsApp",
+      highlight: false,
+    },
+  ]
+  return (
+    <section id="pricing" className="relative">
+      <div className="mx-auto max-w-7xl px-4 py-16 md:py-20">
+        <SectionHeader center title="Pricing" subtitle='Upgrade in chat with /plan. Cancel anytime.' />
+        <div className="mt-10 grid gap-6 md:grid-cols-3">
+          {plans.map((plan) => (
+            <Card
+              key={plan.name}
+                className={cn(
+                  "relative flex flex-col border-muted/60 transition-all hover:-translate-y-[2px] hover:shadow-lg",
+                  plan.highlight && "border-emerald-300/80 shadow-[0_0_0_1px_rgba(16,185,129,0.25)] dark:border-emerald-500/50 dark:shadow-[0_0_0_1px_rgba(16,185,129,0.35)]"
+                )}
+            >
+              {plan.highlight && (
+                <div className="absolute right-3 top-3 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-900 dark:border-emerald-500/40 dark:bg-emerald-950/30 dark:text-emerald-200">
+                  Most popular
+                </div>
+              )}
+              <CardHeader>
+                <CardTitle className="text-xl">{plan.name}</CardTitle>
+                <CardDescription>{plan.blurb}</CardDescription>
+                <div className="mt-2 flex items-baseline gap-1">
+                  <span className="text-3xl font-semibold">{plan.price}</span>
+                  <span className="text-sm text-muted-foreground">{plan.suffix ?? ""}</span>
+                </div>
+              </CardHeader>
+              <CardContent className="flex flex-1 flex-col">
+                <ul className="mb-6 mt-2 grid gap-2 text-sm">
+                  {plan.features.map((f, j) => (
+                    <li key={j} className="flex items-start gap-2">
+                      <Check className="mt-1 h-4 w-4 text-emerald-600" /> <span>{f}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Button
+                  asChild
+                  className={cn(
+                    "mt-auto transition-transform hover:scale-[1.01]",
+                    "bg-gradient-to-r from-emerald-600 to-teal-600"
+                  )}
+                >
+                  <a href={WA_URL} target="_blank" rel="noreferrer">
+                    {plan.cta}
+                    <ExternalLink className="ml-2 h-4 w-4" />
+                  </a>
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        <p className="mt-4 text-center text-xs text-muted-foreground">
+          Billing handled via secure links shared in chat. Taxes may apply. Message limits reset monthly.
         </p>
       </div>
     </section>
   )
 }
 
-function Why() {
-  const bullets = [
-    "In WhatsApp, where you already are — no new apps to learn.",
-    "Zero tech skills required — just chat.",
-    "Real‑world action, not just answers — MCP reaches the services you use.",
-    "You’re always in control — connect or disconnect any integration at any time.",
+function SecurityPrivacy() {
+  const items = [
+    { title: "OAuth 2.0", desc: "Connect services using standard OAuth flows from links sent in chat.", icon: ShieldCheck },
+    { title: "Encrypted tokens", desc: "Access tokens stored securely server‑side. No secrets live on your device.", icon: Lock },
+    { title: "/forgetme", desc: "Delete your data and revoke integrations at any time, right from WhatsApp.", icon: TerminalSquare },
   ]
   return (
-    <section id="why" className="py-20 bg-gradient-to-b from-white to-slate-100 relative overflow-hidden">
-      <div aria-hidden className="pointer-events-none absolute -left-20 -bottom-24 w-[480px] h-[480px] rounded-full bg-amber-200/35 blur-3xl" />
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <div className="text-center mb-10">
-          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-950">Why you’ll love it</h2>
+    <section id="security" className="relative">
+      <div className="mx-auto max-w-7xl px-4 py-16 md:py-20">
+        <div className="grid items-start gap-8 md:grid-cols-2">
+          <div>
+            <SectionHeader
+              title="Security & Privacy"
+              subtitle="Threadway is designed to keep your credentials and actions safe while letting you work entirely from WhatsApp."
+            />
+            <div className="mt-6 grid gap-4">
+              {items.map((it, i) => (
+                <div key={i} className="flex items-start gap-3 rounded-lg border border-muted/60 bg-muted/30 p-3">
+                  <div className="rounded-md bg-gradient-to-br from-emerald-100 to-teal-100 p-1.5 text-emerald-700 ring-1 ring-inset ring-emerald-300/40 dark:from-emerald-900/30 dark:to-teal-900/30 dark:text-emerald-200 dark:ring-emerald-500/20">
+                    <it.icon className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <div className="font-medium">{it.title}</div>
+                    <p className="text-sm text-muted-foreground">{it.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <Card className="border-border bg-card">
+            <CardHeader>
+              <CardTitle>Policies</CardTitle>
+              <CardDescription>We'll publish full policy docs before GA. For now, here are placeholders.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-3 text-sm">
+              <NextLink href="/privacy" className="text-emerald-700 underline-offset-4 hover:underline dark:text-emerald-300">
+                Privacy Policy (placeholder)
+              </NextLink>
+              <NextLink href="/terms" className="text-emerald-700 underline-offset-4 hover:underline dark:text-emerald-300">
+                Terms of Service (placeholder)
+              </NextLink>
+              <NextLink href="/security" className="text-emerald-700 underline-offset-4 hover:underline dark:text-emerald-300">
+                Security Overview (placeholder)
+              </NextLink>
+            </CardContent>
+          </Card>
         </div>
-        <div className="grid md:grid-cols-2 gap-4">
-          {bullets.map((b, i) => (
-            <motion.div
+      </div>
+    </section>
+  )
+}
+
+function Testimonials() {
+  const quotes = [
+    {
+      name: "María G.",
+      role: "Freelance Designer",
+      text: "I just text 'send the invoice' and it's done. No tabs, no context switching. It feels like magic.",
+      stars: 5,
+      img: "/placeholder.svg?height=80&width=80",
+    },
+    {
+      name: "Ethan W.",
+      role: "Ops Lead",
+      text: "Hooked up Gmail, Calendar, and Notion in a single morning. The MCP flow from WhatsApp is shockingly smooth.",
+      stars: 5,
+      img: "/placeholder.svg?height=80&width=80",
+    },
+    {
+      name: "Priya S.",
+      role: "Founder",
+      text: "Voice note → calendar invite → follow‑up email. One thread. Threadway is my new command center.",
+      stars: 5,
+      img: "/placeholder.svg?height=80&width=80",
+    },
+  ]
+  return (
+    <section className="relative">
+      <div className="mx-auto max-w-7xl px-4 py-16 md:py-20">
+        <SectionHeader center title="Loved by early users" subtitle="From newcomers to MCP power users." />
+        <div className="mt-10 grid gap-6 md:grid-cols-3">
+          {quotes.map((q, i) => (
+            <Card
               key={i}
-              className="flex items-start gap-3 rounded-2xl bg-white border border-slate-300 p-4"
-              initial={{ opacity: 0, y: 14 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.25 }}
-              transition={{ duration: 0.45, ease: "easeOut", delay: i * 0.03 }}
+              className="border-muted/60 transition-all hover:-translate-y-[2px] hover:shadow-md hover:shadow-emerald-100 dark:hover:shadow-emerald-900/30"
             >
-              <div className="h-7 w-7 rounded-full bg-emerald-100 text-emerald-700 grid place-items-center">
-                <Check className="h-4 w-4" />
-              </div>
-              <p className="text-slate-800">{b}</p>
-            </motion.div>
+              <CardContent className="p-6">
+                <div className="mb-4 flex items-center gap-3">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src={q.img || "/placeholder.svg"} alt={`${q.name} avatar`} />
+                    <AvatarFallback>{q.name.slice(0, 1)}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <div className="text-sm font-medium">{q.name}</div>
+                    <div className="text-xs text-muted-foreground">{q.role}</div>
+                  </div>
+                </div>
+                <div className="mb-3 flex gap-1 text-emerald-600">
+                  {Array.from({ length: q.stars }).map((_, j) => (
+                    <Star key={j} className="h-4 w-4 fill-emerald-600" />
+                  ))}
+                </div>
+                <p className="text-sm leading-relaxed">"{q.text}"</p>
+              </CardContent>
+            </Card>
           ))}
         </div>
       </div>
@@ -339,149 +527,179 @@ function Why() {
   )
 }
 
-function CtaFooter() {
+function DashboardPlaceholder() {
   return (
-    <footer className="mt-10 bg-slate-950 text-slate-50">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 py-16">
-        <div className="max-w-2xl">
-          <p className="text-slate-300">Make everyday tasks lighter.</p>
-          <h3 className="text-3xl sm:text-4xl font-extrabold mt-1 text-white">Start chatting on WhatsApp today.</h3>
-          <div className="mt-6 flex flex-wrap items-center gap-3">
-            <ThreadButton asChild size="lg">
-              <Link href="WA_LINK">Message threadway</Link>
-            </ThreadButton>
-            <OutlineButton asChild size="lg" className="!border-slate-600 !text-slate-100 hover:bg-white/10">
-              <Link href="/privacy">Privacy Policy</Link>
-            </OutlineButton>
-            <OutlineButton asChild size="lg" className="!border-slate-600 !text-slate-100 hover:bg-white/10">
-              <Link href="/contact">Contact Us</Link>
-            </OutlineButton>
+    <section className="relative">
+      <div className="mx-auto max-w-7xl px-4 py-16 md:py-20">
+        <div className="grid items-center gap-10 lg:grid-cols-2">
+          <div>
+            <SectionHeader
+              title="Optional MCP Dashboard"
+              subtitle="Power users can log in to a lightweight web dashboard to browse connectors, set credentials, test calls, and view usage. Once configured, invoke each connector by name directly in WhatsApp."
+            />
+            <ul className="mt-6 grid gap-2 text-sm">
+              <li className="flex items-center gap-2">
+                <Check className="h-4 w-4 text-emerald-600" /> Browse & test MCP connectors
+              </li>
+              <li className="flex items-center gap-2">
+                <Check className="h-4 w-4 text-emerald-600" /> Configure API keys & parameters
+              </li>
+              <li className="flex items-center gap-2">
+                <Check className="h-4 w-4 text-emerald-600" /> Monitor logs & quotas
+              </li>
+            </ul>
           </div>
-          <div className="mt-6 text-sm text-slate-400 flex items-center gap-2">
-            <span className="inline-flex items-center gap-1">
-              <span className="h-2 w-2 rounded-full bg-teal-400" />
-              Powered by MCP
-            </span>
+          <Card className="overflow-hidden border-border bg-card">
+            <CardHeader>
+              <CardTitle>Dashboard diagram</CardTitle>
+              <CardDescription>Placeholder image—drop your diagram here later.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <img
+                src="/placeholder.svg?height=400&width=700"
+                alt="Placeholder for the MCP Dashboard diagram"
+                className="w-full rounded-md border"
+              />
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function FAQ() {
+  const faqs = [
+    { q: "Do I need to install an app?", a: "No. Threadway lives inside WhatsApp. Say hi to get started." },
+    {
+      q: "How do I connect services like Gmail or Calendar?",
+      a:
+        "When you ask for something that needs access, Threadway sends a secure OAuth link in the chat. Approve in your browser, then come back to WhatsApp.",
+    },
+    { q: "What are in‑chat commands?", a: "Use /plan to manage your plan, /quota to see remaining messages, /forgetme to delete your data, and /help for a command list." },
+    { q: "Is my data safe?", a: "Yes. We use standard OAuth for access and encrypted server‑side token storage. You can revoke and delete at any time with /forgetme." },
+    { q: "What is MCP?", a: "The Model Context Protocol lets AI safely interact with external tools like email, calendars, docs, repos, and internal APIs. Threadway supports any MCP‑compatible connector." },
+    { q: "Does it work with voice notes?", a: "Yes. Record a voice note and Threadway will transcribe, run your request, and return results in the same thread." },
+  ]
+  return (
+    <section id="faq" className="relative">
+      <div className="mx-auto max-w-3xl px-4 py-16 md:py-20">
+        <h2 className="text-center text-3xl font-semibold tracking-tight sm:text-4xl">FAQ</h2>
+        <Accordion type="single" collapsible className="mt-8">
+          {faqs.map((f, i) => (
+            <AccordionItem key={i} value={`item-${i}`}>
+              <AccordionTrigger className="text-left">{f.q}</AccordionTrigger>
+              <AccordionContent className="text-muted-foreground">{f.a}</AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+      </div>
+    </section>
+  )
+}
+
+function CallToActionBand() {
+  return (
+    <section className="relative">
+      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+        <div className="absolute left-1/2 top-0 h-72 w-[900px] -translate-x-1/2 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(16,185,129,0.18),transparent_60%)] blur-2xl" />
+      </div>
+      <div className="mx-auto max-w-7xl px-4 pb-12 pt-2">
+        <Card className="overflow-hidden border-border bg-card">
+          <CardContent className="flex flex-col items-center justify-between gap-4 p-6 md:flex-row md:gap-6">
+            <div>
+              <h3 className="text-xl font-semibold">Ready to try Threadway?</h3>
+              <p className="text-sm text-muted-foreground">Say hi on WhatsApp and get started in under two minutes.</p>
+            </div>
+            <Button
+              asChild
+              size="lg"
+              className="bg-gradient-to-r from-emerald-600 to-teal-600 shadow-[0_12px_28px_-12px_rgba(16,185,129,0.65)] transition-transform hover:scale-[1.01]"
+            >
+              <a href={WA_URL} target="_blank" rel="noreferrer">
+                Start on WhatsApp
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </a>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    </section>
+  )
+}
+
+function Footer() {
+  return (
+    <footer className="relative border-t">
+      <div className="mx-auto max-w-7xl px-4 py-10">
+        <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
+          <div className="flex items-center gap-2">
+            <div className="grid h-8 w-8 place-items-center rounded-md bg-gradient-to-br from-emerald-600 to-teal-600 text-white shadow-sm">
+              <span className="text-sm font-bold">T</span>
+            </div>
+            <div>
+              <div className="font-semibold tracking-tight">Threadway</div>
+              <div className="text-xs text-muted-foreground">support@threadway.co</div>
+            </div>
           </div>
+          <nav className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+            <NextLink href="#how-it-works" className="hover:text-foreground">
+              How it works
+            </NextLink>
+            <NextLink href="#features" className="hover:text-foreground">
+              Features
+            </NextLink>
+            <NextLink href="#pricing" className="hover:text-foreground">
+              Pricing
+            </NextLink>
+            <NextLink href="#security" className="hover:text-foreground">
+              Security
+            </NextLink>
+            <NextLink href="#faq" className="hover:text-foreground">
+              FAQ
+            </NextLink>
+            <NextLink href="/privacy" className="hover:text-foreground">
+              Privacy
+            </NextLink>
+            <NextLink href="/terms" className="hover:text-foreground">
+              Terms
+            </NextLink>
+          </nav>
+        </div>
+        <Separator className="my-6" />
+        <div className="flex flex-col-reverse items-start justify-between gap-4 text-xs text-muted-foreground md:flex-row md:items-center">
+          <p>© {new Date().getFullYear()} Threadway. All rights reserved.</p>
+          <p>Not affiliated with WhatsApp. WhatsApp is a trademark of its respective owner.</p>
         </div>
       </div>
     </footer>
   )
 }
 
-/* ---------- Inline “components” ---------- */
-
-function ThreadButton({
-  children,
-  asChild,
-  size = "md",
-  className,
-}: {
-  children: React.ReactNode
-  asChild?: boolean
-  size?: "sm" | "md" | "lg"
-  className?: string
-}) {
-  const Size = size === "lg" ? "px-6 py-3 text-base" : size === "sm" ? "px-4 py-2 text-sm" : "px-5 py-2.5 text-sm"
-  const Comp: any = asChild ? "span" : "button"
+export default function LandingPage() {
   return (
-    <Comp
-      className={cn(
-        "inline-flex items-center justify-center rounded-full font-medium transition",
-        "bg-amber-400 text-slate-950 hover:bg-amber-300 active:scale-[.98]",
-        "shadow-[0_22px_60px_-22px_rgba(251,191,36,0.9)]",
-        "focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/60",
-        "relative",
-        Size,
-        className
-      )}
-    >
-      <span className="pointer-events-none absolute left-2 h-2.5 w-2.5 rounded-full bg-gradient-to-br from-amber-400 to-indigo-500" />
-      {children}
-    </Comp>
-  )
-}
+    <main className="bg-background">
+      <Header />
+      <Hero />
+      <HowItWorks />
+      <ValueForAll />
+      <Features />
+      <Pricing />
+      <SecurityPrivacy />
+      <Testimonials />
+      <DashboardPlaceholder />
+      <FAQ />
+      <CallToActionBand />
+      <Footer />
 
-function OutlineButton({
-  children,
-  asChild,
-  size = "md",
-  className,
-}: {
-  children: React.ReactNode
-  asChild?: boolean
-  size?: "sm" | "md" | "lg"
-  className?: string
-}) {
-  const Size = size === "lg" ? "px-6 py-3 text-base" : size === "sm" ? "px-4 py-2 text-sm" : "px-5 py-2.5 text-sm"
-  const Comp: any = asChild ? "span" : "button"
-  return (
-    <Comp
-      className={cn(
-        "inline-flex items-center justify-center rounded-full font-medium transition bg-transparent",
-        "border border-slate-400 text-slate-900 hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/60",
-        Size,
-        className
-      )}
-    >
-      {children}
-    </Comp>
-  )
-}
-
-function KnotBadge({
-  children,
-  className,
-}: {
-  children: React.ReactNode
-  className?: string
-}) {
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium",
-        "bg-teal-50 border-teal-200 text-teal-800",
-        className
-      )}
-    >
-      <span className="inline-block h-2 w-2 rounded-full bg-gradient-to-br from-amber-400 to-indigo-500" />
-      {children}
-    </span>
-  )
-}
-
-function ThreadLine({
-  className,
-  path = "M0,80 C120,20 240,140 360,80 S600,80 720,80",
-  colorA = "#f59e0b", // amber-500
-  colorB = "#6366f1", // indigo-500
-  opacity = 0.22,
-}: {
-  className?: string
-  path?: string
-  colorA?: string
-  colorB?: string
-  opacity?: number
-}) {
-  return (
-    <svg className={cn("w-full", className)} viewBox="0 0 720 160" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-      <defs>
-        <linearGradient id="thread" x1="0" y1="0" x2="720" y2="0" gradientUnits="userSpaceOnUse">
-          <stop stopColor={colorA} />
-          <stop offset="1" stopColor={colorB} />
-        </linearGradient>
-      </defs>
-      <motion.path
-        d={path}
-        stroke="url(#thread)"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        opacity={opacity}
-        initial={{ pathLength: 0 }}
-        whileInView={{ pathLength: 1 }}
-        viewport={{ once: true, amount: 0.5 }}
-        transition={{ duration: 1.1, ease: "easeOut" }}
-      />
-    </svg>
+      {/* Page-wide subtle motion utilities */}
+      <style jsx global>{`
+        @media (prefers-reduced-motion: no-preference) {
+          .hover\\:-translate-y-1:hover {
+            transform: translateY(-0.25rem);
+          }
+        }
+      `}</style>
+    </main>
   )
 }
