@@ -1,5 +1,3 @@
-"use client"
-
 import NextLink from "next/link"
 import PhoneMockup from "@/components/phone-mockup"
 import { ArrowRight, Check, ChevronRight, MessageCircle, Mic, Calendar, Globe2, ShieldCheck, Zap, Bot, Mail, TerminalSquare, Star, Lock, ExternalLink, Wrench, Network, Link2 } from 'lucide-react'
@@ -14,6 +12,18 @@ import ThemeToggle from "@/components/theme-toggle"
 
 const WA_NUMBER = "5730278427172" // international format without +
 const WA_URL = `https://wa.me/${WA_NUMBER}?text=Hi%20Threadway%20%E2%9C%8C%EF%B8%8F`
+
+// JSON-LD structured data for SEO
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "Threadway",
+  applicationCategory: "BusinessApplication",
+  description:
+    "Talk to powerful LLMs and your tools from a single WhatsApp chat via MCP. Write, schedule, and automate—no new app, no passwords.",
+  url: "https://threadway.co",
+  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" }
+}
 
 function Header() {
   const NavLink = ({ href, children }: { href: string; children: React.ReactNode }) => (
@@ -131,7 +141,7 @@ function Hero() {
           <div className="relative">
             {/* Glow behind the phone */}
             <div aria-hidden className="absolute left-1/2 top-6 -z-10 h-40 w-60 -translate-x-1/2 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(16,185,129,0.36),transparent_60%)] blur-2xl" />
-            <div className="transition-transform duration-700 ease-out hover:-translate-y-1">
+            <div className="transition-transform duration-700 ease-out motion-safe:hover:-translate-y-1 motion-reduce:transform-none">
               <PhoneMockup />
             </div>
           </div>
@@ -198,7 +208,7 @@ function HowItWorks() {
         {/* Timeline on mobile, cards on larger screens */}
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {steps.map((s, i) => (
-            <Card key={i} className="border-muted/60 transition-all hover:-translate-y-[2px] hover:shadow-md">
+            <Card key={i} className="border-muted/60 transition-all motion-safe:hover:-translate-y-[2px] hover:shadow-md">
               <CardHeader>
                 <div className="mb-3 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-100 to-teal-100 text-emerald-700 ring-1 ring-inset ring-emerald-300/40 dark:from-emerald-900/30 dark:to-teal-900/30 dark:text-emerald-200 dark:ring-emerald-500/20">
                   <s.icon className="h-5 w-5" />
@@ -311,7 +321,7 @@ function Features() {
           {features.map((f, i) => (
             <Card
               key={i}
-              className="border-muted/60 transition-all hover:-translate-y-[2px] hover:shadow-md hover:shadow-emerald-100 dark:hover:shadow-emerald-900/30"
+              className="border-muted/60 transition-all motion-safe:hover:-translate-y-[2px] hover:shadow-md hover:shadow-emerald-100 dark:hover:shadow-emerald-900/30"
             >
               <CardHeader className="pb-2">
                 <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-100 to-teal-100 text-emerald-700 ring-1 ring-inset ring-emerald-300/40 dark:from-emerald-900/30 dark:to-teal-900/30 dark:text-emerald-200 dark:ring-emerald-500/20">
@@ -366,7 +376,7 @@ function Pricing() {
             <Card
               key={plan.name}
                 className={cn(
-                  "relative flex flex-col border-muted/60 transition-all hover:-translate-y-[2px] hover:shadow-lg",
+                  "relative flex flex-col border-muted/60 transition-all motion-safe:hover:-translate-y-[2px] hover:shadow-lg",
                   plan.highlight && "border-emerald-300/80 shadow-[0_0_0_1px_rgba(16,185,129,0.25)] dark:border-emerald-500/50 dark:shadow-[0_0_0_1px_rgba(16,185,129,0.35)]"
                 )}
             >
@@ -394,7 +404,7 @@ function Pricing() {
                 <Button
                   asChild
                   className={cn(
-                    "mt-auto transition-transform hover:scale-[1.01]",
+                    "mt-auto transition-transform motion-safe:hover:scale-[1.01]",
                     "bg-gradient-to-r from-emerald-600 to-teal-600"
                   )}
                 >
@@ -499,7 +509,7 @@ function Testimonials() {
           {quotes.map((q, i) => (
             <Card
               key={i}
-              className="border-muted/60 transition-all hover:-translate-y-[2px] hover:shadow-md hover:shadow-emerald-100 dark:hover:shadow-emerald-900/30"
+              className="border-muted/60 transition-all motion-safe:hover:-translate-y-[2px] hover:shadow-md hover:shadow-emerald-100 dark:hover:shadow-emerald-900/30"
             >
               <CardContent className="p-6">
                 <div className="mb-4 flex items-center gap-3">
@@ -679,6 +689,11 @@ function Footer() {
 export default function LandingPage() {
   return (
     <main className="bg-background">
+      <script
+        type="application/ld+json"
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <Header />
       <Hero />
       <HowItWorks />
@@ -691,15 +706,6 @@ export default function LandingPage() {
       <FAQ />
       <CallToActionBand />
       <Footer />
-
-      {/* Page-wide subtle motion utilities */}
-      <style jsx global>{`
-        @media (prefers-reduced-motion: no-preference) {
-          .hover\\:-translate-y-1:hover {
-            transform: translateY(-0.25rem);
-          }
-        }
-      `}</style>
     </main>
   )
 }

@@ -1,5 +1,6 @@
 "use client"
 
+
 import * as React from "react"
 import { cn } from "@/lib/utils"
 import { ExternalLink, MessageCircle, Mic, Play, CheckCheck } from 'lucide-react'
@@ -90,15 +91,8 @@ export default function PhoneMockup() {
     []
   )
 
-  // Auto-scroll to bottom on mount
+  // Scroll container ref (no auto-scroll on mount)
   const listRef = React.useRef<HTMLDivElement | null>(null)
-  React.useEffect(() => {
-    const el = listRef.current
-    if (!el) return
-    requestAnimationFrame(() => {
-      el.scrollTop = el.scrollHeight
-    })
-  }, [])
 
   return (
     <div className="relative mx-auto w-full max-w-[460px]">
