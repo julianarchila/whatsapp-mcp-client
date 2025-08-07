@@ -11,7 +11,7 @@ export const AVAILABLE_TOOLS = [
     {
         id: "figma",
         name: "Figma",
-        description: "Design and collaboration platform for teams.",
+        description: "Plataforma de diseño y colaboración para equipos.",
         icon: Figma,
         category: "Diseño",
         verified: true,
@@ -19,7 +19,7 @@ export const AVAILABLE_TOOLS = [
     {
         id: "linear",
         name: "Linear",
-        description: "Issue tracking and project management for development teams.",
+        description: "Seguimiento de incidencias y gestión de proyectos para equipos de desarrollo.",
         icon: GitBranch,
         category: "Desarrollo",
         verified: true,
@@ -27,7 +27,7 @@ export const AVAILABLE_TOOLS = [
     {
         id: "trello",
         name: "Trello",
-        description: "Visual project management with boards, lists, and cards.",
+        description: "Gestión visual de proyectos con tableros, listas y tarjetas.",
         icon: Trello,
         category: "Productividad",
         verified: true,
@@ -35,7 +35,7 @@ export const AVAILABLE_TOOLS = [
     {
         id: "discord",
         name: "Discord",
-        description: "Voice, video, and text communication for communities.",
+        description: "Comunicación por voz, video y texto para comunidades.",
         icon: MessageCircle,
         category: "Comunicación",
         verified: true,
@@ -43,7 +43,7 @@ export const AVAILABLE_TOOLS = [
     {
         id: "zoom",
         name: "Zoom",
-        description: "Video conferencing and online meeting platform.",
+        description: "Plataforma de videoconferencias y reuniones en línea.",
         icon: Video,
         category: "Comunicación",
         verified: true,
@@ -51,7 +51,7 @@ export const AVAILABLE_TOOLS = [
     {
         id: "adobe-creative",
         name: "Adobe Creative Suite",
-        description: "Professional creative tools for design and content creation.",
+        description: "Herramientas creativas profesionales para diseño y creación de contenido.",
         icon: Palette,
         category: "Diseño",
         verified: true,
@@ -67,12 +67,12 @@ interface DiscoverToolsModalProps {
 export function DiscoverToolsModal({ open, onOpenChange, onAddTool }: DiscoverToolsModalProps) {
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto bg-black border-gray-800">
+            <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
                 <DialogHeader className="pb-6">
-                    <DialogTitle className="text-2xl font-bold text-white">
+                    <DialogTitle className="text-2xl font-bold">
                         Descubre herramientas
                     </DialogTitle>
-                    <p className="text-gray-400 text-base">
+                    <p className="text-muted-foreground text-base">
                         Añade nuevas herramientas a tu flujo de trabajo para potenciar tu productividad
                     </p>
                 </DialogHeader>
@@ -83,36 +83,36 @@ export function DiscoverToolsModal({ open, onOpenChange, onAddTool }: DiscoverTo
                         return (
                             <div
                                 key={tool.id}
-                                className="bg-gray-900 border border-gray-800 rounded-lg p-6 hover:border-gray-700 transition-colors"
+                                className="border rounded-lg p-6 hover:shadow-md transition-all"
                             >
                                 <div className="flex items-start gap-4 mb-4">
-                                    <div className="p-2 bg-gray-800 rounded-lg">
-                                        <Icon className="h-6 w-6 text-white" />
+                                    <div className="p-2 bg-muted rounded-lg">
+                                        <Icon className="h-6 w-6" />
                                     </div>
                                     <div className="flex-1">
                                         <div className="flex items-center gap-2 mb-2">
-                                            <h3 className="font-semibold text-white text-lg">{tool.name}</h3>
+                                            <h3 className="font-semibold text-lg">{tool.name}</h3>
                                             {tool.verified && (
                                                 <CheckCircle2 className="h-4 w-4 text-blue-500" />
                                             )}
                                         </div>
-                                        <p className="text-gray-400 text-sm leading-relaxed">
+                                        <p className="text-muted-foreground text-sm leading-relaxed">
                                             {tool.description}
                                         </p>
                                     </div>
                                 </div>
 
                                 <div className="flex items-center justify-between">
-                                    <Badge variant="secondary" className="bg-gray-800 text-gray-300 border-gray-700">
+                                    <Badge variant="secondary">
                                         {tool.category}
                                     </Badge>
                                     <Button
                                         onClick={() => onAddTool(tool.id)}
-                                        className="bg-gray-800 hover:bg-gray-700 text-white border border-gray-700 hover:border-gray-600"
+                                        variant="outline"
                                         size="sm"
                                     >
                                         <Plus className="h-4 w-4 mr-2" />
-                                        Add {tool.name} to Cursor
+                                        Integrar {tool.name}
                                     </Button>
                                 </div>
                             </div>
@@ -120,11 +120,10 @@ export function DiscoverToolsModal({ open, onOpenChange, onAddTool }: DiscoverTo
                     })}
                 </div>
 
-                <div className="flex justify-end pt-6 border-t border-gray-800">
+                <div className="flex justify-end pt-6 border-t">
                     <Button
                         variant="outline"
                         onClick={() => onOpenChange(false)}
-                        className="border-gray-700 text-gray-300 hover:bg-gray-800"
                     >
                         Cerrar
                     </Button>

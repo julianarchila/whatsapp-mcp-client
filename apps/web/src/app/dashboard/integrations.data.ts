@@ -20,6 +20,6 @@ export const mockIntegrations: Integration[] = [
     name: "Github",
     description: "Sincroniza repositorios y gestiona pull requests automáticamente",
     icon: Github,
-    isActive: true,
+    isActive: false,
   },
 ];

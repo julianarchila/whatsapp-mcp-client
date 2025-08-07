@@ -146,7 +146,7 @@ export function AddToolForm({ onAddTool }: AddToolFormProps) {
                     <Textarea
                       id={field.name}
                       name={field.name}
-                      placeholder="Describe qué hace tu herramienta y cómo ayudará en tu flujo de trabajo..."
+                      placeholder="Describe qué hace tu herramienta..."
                       rows={3}
                       value={field.state.value}
                       onBlur={field.handleBlur}
