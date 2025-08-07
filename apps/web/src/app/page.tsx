@@ -10,8 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { cn } from "@/lib/utils"
 import ThemeToggle from "@/components/theme-toggle"
 
-const WA_NUMBER = "5730278427172" // international format without +
-const WA_URL = `https://wa.me/${WA_NUMBER}?text=Hi%20Threadway%20%E2%9C%8C%EF%B8%8F`
+const WA_URL = `https://wa.me/message/RZEXMJPBWCZRG1`
 
 // JSON-LD structured data for SEO
 const jsonLd = {
