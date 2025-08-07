@@ -7,7 +7,6 @@ import { useEffect, useState } from "react"
 import { IntegrationsSection } from "@/components/integrations-section"
 import { mockIntegrations } from "./integrations.data"
 import type { Integration } from "@/components/integration-card"
-import { AddToolForm } from "@/components/integration-form"
 
 export default function Dashboard() {
   const [integrations, setIntegrations] = useState<Integration[]>(mockIntegrations)
@@ -50,9 +49,6 @@ export default function Dashboard() {
         setIntegrations={setIntegrations}
         onToggleIntegration={handleToggleIntegration}
         onConfigureIntegration={handleConfigureIntegration}
-      />
-      <AddToolForm
-        onAddTool={() => { }}
       />
     </div>
   )

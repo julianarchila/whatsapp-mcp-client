@@ -70,10 +70,10 @@ export function DiscoverToolsModal({ open, onOpenChange, onAddTool }: DiscoverTo
             <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
                 <DialogHeader className="pb-6">
                     <DialogTitle className="text-2xl font-bold">
-                        Descubre herramientas
+                        Descubre y conecta MCPs
                     </DialogTitle>
                     <p className="text-muted-foreground text-base">
-                        Añade nuevas herramientas a tu flujo de trabajo para potenciar tu productividad
+                        Encuentra nuevas integraciones que puedes añadir para mejorar tu productividad.
                     </p>
                 </DialogHeader>
 

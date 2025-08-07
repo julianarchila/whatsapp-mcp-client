@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { IntegrationCard, type Integration } from "./integration-card"
 import { DiscoverToolsModal } from "./discover-tools-modal"
+import { CustomIntegrationPopover } from "./custom-integration-popover"
 
 interface IntegrationsSectionProps {
   integrations: Integration[]
@@ -44,10 +45,21 @@ export function IntegrationsSection({
   const filteredIntegrations = integrations.filter((integration) => {
     const matchesSearch =
       integration.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      integration.description.toLowerCase().includes(searchTerm.toLowerCase())
+      (integration.description?.toLowerCase() ?? '').includes(searchTerm.toLowerCase())
     const matchesFilter = !showActiveOnly || integration.isActive
     return matchesSearch && matchesFilter
   })
+
+  const handleAddCustomTool = (toolData: { name: string; url: string; apiKey: string }) => {
+    const newIntegration: Integration = {
+      id: `custom-${Date.now()}`,
+      name: toolData.name,
+      icon: Zap,
+      category: "Personalizada",
+      isActive: false,
+    }
+    setIntegrations(prev => [...prev, newIntegration])
+  }
 
   const activeCount = integrations.filter((i) => i.isActive).length
 
@@ -57,14 +69,15 @@ export function IntegrationsSection({
         {/* Header */}
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
+            <div className="flex items-center justify-start space-x-3">
               <Button
                 variant="outline"
                 onClick={() => setShowDiscoverModal(true)}
                 className="ml-4"
               >
-                Descubre herramientas
+                Descubrir integraciones
               </Button>
+              <CustomIntegrationPopover onAddTool={handleAddCustomTool} />
             </div>
             <div className="flex items-center space-x-3">
               <div className="relative">
@@ -80,7 +93,7 @@ export function IntegrationsSection({
                 variant={showActiveOnly ? "default" : "outline"}
                 size="sm"
                 onClick={() => setShowActiveOnly(!showActiveOnly)}
-                className="flex items-center space-x-2"
+                className="flex items-center space-x-2 mr-4"
               >
                 <Filter className="w-4 h-4" />
                 <span>{showActiveOnly ? "Todas" : "Solo activas"}</span>
@@ -140,7 +153,6 @@ export function IntegrationsSection({
             const integration = {
               id: newTool.id,
               name: newTool.name,
-              description: newTool.description,
               icon: newTool.icon,
               category: newTool.category,
               isActive: false,
