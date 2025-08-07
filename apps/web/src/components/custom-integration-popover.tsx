@@ -63,7 +63,7 @@ export function CustomIntegrationPopover({ onAddTool }: CustomIntegrationPopover
     return (
         <Popover open={open} onOpenChange={handleOpenChange}>
             <PopoverTrigger asChild>
-                <Button variant="outline">
+                <Button variant="outline" className="transition-transform hover:scale-[1.01]">
                     <Plus className="h-4 w-4 mr-2" />
                     Add Integration
                 </Button>

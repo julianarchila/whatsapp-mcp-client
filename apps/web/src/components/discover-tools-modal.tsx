@@ -69,11 +69,11 @@ export function DiscoverToolsModal({ open, onOpenChange, onAddTool }: DiscoverTo
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
                 <DialogHeader className="pb-6">
-                    <DialogTitle className="text-2xl font-bold">
-                        Descubre y conecta MCPs
+                    <DialogTitle className="text-2xl font-semibold tracking-tight">
+                        Discover and connect MCPs
                     </DialogTitle>
-                    <p className="text-muted-foreground text-base">
-                        Encuentra nuevas integraciones que puedes añadir para mejorar tu productividad.
+                    <p className="text-muted-foreground text-sm">
+                        Find new integrations to add to your workspace.
                     </p>
                 </DialogHeader>
 
@@ -83,17 +83,17 @@ export function DiscoverToolsModal({ open, onOpenChange, onAddTool }: DiscoverTo
                         return (
                             <div
                                 key={tool.id}
-                                className="border rounded-lg p-6 hover:shadow-md transition-all"
+                                className="border rounded-lg p-6 hover:shadow-md transition-all hover:-translate-y-[1px]"
                             >
                                 <div className="flex items-start gap-4 mb-4">
-                                    <div className="p-2 bg-muted rounded-lg">
-                                        <Icon className="h-6 w-6" />
+                                    <div className="p-2 rounded-lg bg-[radial-gradient(ellipse_at_center,rgba(16,185,129,0.12),rgba(20,184,166,0.10),transparent_60%)] ring-1 ring-inset ring-[color-mix(in_srgb,var(--ring),transparent_60%)]">
+                                        <Icon className="h-6 w-6 text-foreground" />
                                     </div>
                                     <div className="flex-1">
                                         <div className="flex items-center gap-2 mb-2">
-                                            <h3 className="font-semibold text-lg">{tool.name}</h3>
+                                            <h3 className="font-medium text-base tracking-tight">{tool.name}</h3>
                                             {tool.verified && (
-                                                <CheckCircle2 className="h-4 w-4 text-blue-500" />
+                                                <CheckCircle2 className="h-4 w-4 text-[var(--brand-ring)]" />
                                             )}
                                         </div>
                                         <p className="text-muted-foreground text-sm leading-relaxed">
@@ -110,9 +110,10 @@ export function DiscoverToolsModal({ open, onOpenChange, onAddTool }: DiscoverTo
                                         onClick={() => onAddTool(tool.id)}
                                         variant="outline"
                                         size="sm"
+                                        className="transition-transform hover:scale-[1.01]"
                                     >
                                         <Plus className="h-4 w-4 mr-2" />
-                                        Integrar {tool.name}
+                                        Add {tool.name}
                                     </Button>
                                 </div>
                             </div>
@@ -125,7 +126,7 @@ export function DiscoverToolsModal({ open, onOpenChange, onAddTool }: DiscoverTo
                         variant="outline"
                         onClick={() => onOpenChange(false)}
                     >
-                        Cerrar
+                        Close
                     </Button>
                 </div>
             </DialogContent>

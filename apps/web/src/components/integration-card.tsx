@@ -28,16 +28,16 @@ export function IntegrationCard({
   const IconComponent = integration.icon
 
   return (
-    <Card className="transition-all hover:shadow-md">
+    <Card className="border border-muted/60 transition-all hover:-translate-y-[1px] hover:shadow-md">
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div className="flex flex-col">
             <div className="flex items-center gap-4 flex-1">
-              <div className="p-2 bg-muted rounded-lg">
-                <IconComponent className="h-6 w-6" />
+              <div className="p-2 rounded-lg bg-[radial-gradient(ellipse_at_center,rgba(16,185,129,0.12),rgba(20,184,166,0.10),transparent_60%)] ring-1 ring-inset ring-[color-mix(in_srgb,var(--ring),transparent_60%)]">
+                <IconComponent className="h-6 w-6 text-foreground" />
               </div>
               <div className="flex-1">
-                <h3 className="bold text-lg">{integration.name}</h3>
+                <h3 className="bold text-lg tracking-tight">{integration.name}</h3>
                 <p className="text-sm text-muted-foreground">
                   {integration.description}
                 </p>
@@ -50,6 +50,7 @@ export function IntegrationCard({
               variant="outline"
               size="sm"
               onClick={() => onConfigure(integration.id)}
+              className="transition-transform hover:scale-[1.01]"
             >
               Configure
             </Button>

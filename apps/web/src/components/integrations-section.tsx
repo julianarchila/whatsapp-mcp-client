@@ -65,15 +65,19 @@ export function IntegrationsSection({
 
   return (
     <div className="bg-background">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center justify-start space-x-3">
+            <div className="flex items-center justify-start gap-3">
+              <div className="inline-flex items-center gap-2 rounded-full border border-[color-mix(in_srgb,var(--ring),transparent_50%)] bg-[color-mix(in_srgb,var(--accent),transparent_60%)] px-2.5 py-1 text-xs text-foreground/90 backdrop-blur">
+                <span className="inline-flex h-1.5 w-1.5 rounded-full bg-[var(--brand-ring)]" />
+                {activeCount} active
+              </div>
               <Button
                 variant="outline"
                 onClick={() => setShowDiscoverModal(true)}
-                className="ml-4"
+                className="transition-transform hover:scale-[1.01]"
               >
                 Discover Integrations
               </Button>
@@ -93,7 +97,7 @@ export function IntegrationsSection({
                 variant={showActiveOnly ? "default" : "outline"}
                 size="sm"
                 onClick={() => setShowActiveOnly(!showActiveOnly)}
-                className="flex items-center space-x-2 mr-4"
+                className="flex items-center space-x-2"
               >
                 <Filter className="w-4 h-4" />
                 <span>{showActiveOnly ? "Show All" : "Active Only"}</span>
@@ -116,7 +120,7 @@ export function IntegrationsSection({
           </div>
         ) : (
           <div className="text-center py-12">
-            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-[radial-gradient(ellipse_at_center,rgba(16,185,129,0.12),rgba(20,184,166,0.10),transparent_60%)] ring-1 ring-inset ring-[color-mix(in_srgb,var(--ring),transparent_60%)]">
               <Search className="w-8 h-8 text-muted-foreground" />
             </div>
             <h3 className="text-lg font-medium text-foreground mb-2">
