@@ -17,11 +17,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL("https://threadway.co"),
   title: {
-    default: "Threadway — Ask. It acts. All inside your WhatsApp thread.",
+    default: "Threadway — Use AI & your tools inside WhatsApp (Gmail, Calendar, Notion)",
     template: "%s | Threadway",
   },
   description:
-    "Talk to powerful LLMs and your tools from a single WhatsApp chat via MCP. Write, schedule, and automate—no new app, no passwords.",
+    "Turn WhatsApp into your AI command center. Connect Gmail, Calendar, Notion & more via MCP. Send emails, schedule meetings, and automate tasks with voice or text — no app, no passwords. Start free.",
   keywords: [
     "WhatsApp",
     "MCP",
@@ -37,18 +37,18 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     url: "https://threadway.co/",
-    title: "Threadway — Ask. It acts. All inside your WhatsApp thread.",
+    title: "Threadway — Use AI & your tools inside WhatsApp (Gmail, Calendar, Notion)",
     description:
-      "Talk to powerful LLMs and your tools from a single WhatsApp chat via MCP. Write, schedule, and automate—no new app, no passwords.",
+      "Turn WhatsApp into your AI command center. Connect Gmail, Calendar, Notion & more via MCP. Send emails, schedule meetings, and automate tasks with voice or text — no app, no passwords. Start free.",
     images: [
       { url: "/placeholder.svg", width: 1200, height: 630, alt: "Threadway product preview" },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Threadway — Ask. It acts. All inside your WhatsApp thread.",
+    title: "Threadway — Use AI & your tools inside WhatsApp (Gmail, Calendar, Notion)",
     description:
-      "Talk to powerful LLMs and your tools from a single WhatsApp chat via MCP. Write, schedule, and automate—no new app, no passwords.",
+      "Turn WhatsApp into your AI command center. Connect Gmail, Calendar, Notion & more via MCP. Send emails, schedule meetings, and automate tasks with voice or text — no app, no passwords. Start free.",
     images: ["/placeholder.svg"],
   },
   robots: {

@@ -19,7 +19,7 @@ const jsonLd = {
   name: "Threadway",
   applicationCategory: "BusinessApplication",
   description:
-    "Talk to powerful LLMs and your tools from a single WhatsApp chat via MCP. Write, schedule, and automate—no new app, no passwords.",
+    "Turn WhatsApp into your AI command center. Connect Gmail, Calendar, Notion & more via MCP. Send emails, schedule meetings, and automate tasks with voice or text — no app, no passwords. Start free.",
   url: "https://threadway.co",
   offers: { "@type": "Offer", price: "0", priceCurrency: "USD" }
 }
@@ -99,12 +99,10 @@ function Hero() {
               No passwords • Start in WhatsApp
             </div>
             <h1 className="mt-4 text-balance text-4xl font-semibold tracking-tight sm:text-5xl">
-              Ask. It acts. All inside your WhatsApp thread.
+              The easiest way to use AI and all your tools — right inside WhatsApp
             </h1>
             <p className="mt-4 text-pretty text-muted-foreground">
-              Threadway lets you talk to powerful LLMs and your tools from a single WhatsApp chat. Connect Gmail, Calendar,
-              Notion, GitHub and more through MCP, then write, schedule, and automate in plain language or voice notes—no
-              new app, no passwords.
+              Talk to AI, connect Gmail, Calendar, Notion, and automate work — no new apps, no passwords. Start in 60 seconds.
             </p>
             <div className="mt-6 flex flex-wrap items-center gap-3">
               <Button
@@ -121,6 +119,10 @@ function Hero() {
                 <NextLink href="#how-it-works">See how it works</NextLink>
               </Button>
             </div>
+
+            <p className="mt-4 text-sm text-muted-foreground">
+              Use AI to do things — send emails, schedule meetings, search, and automate — all in one WhatsApp chat.
+            </p>
 
             <div className="mt-6 grid w-full gap-3 text-sm text-muted-foreground sm:grid-cols-3">
               <div className="flex items-center gap-2 rounded-md border border-emerald-200/50 bg-emerald-50/50 px-3 py-2 dark:border-emerald-400/20 dark:bg-emerald-950/30">
@@ -312,7 +314,7 @@ function Features() {
     { icon: Network, title: "Open MCP layer", desc: "Connect Gmail, Calendar, Notion, GitHub, CRMs, and internal tools." },
     { icon: Zap, title: "Fast onboarding", desc: "Say hi and you're in. Phone‑number authentication—no sign‑up flow." },
   ]
-  return (
+    return (
     <section id="features" className="relative">
       <div className="mx-auto max-w-7xl px-4 py-16 md:py-20">
         <SectionHeader center title="Features" subtitle="Everything you expect from a real assistant—powered by LLMs and your tools." />
@@ -400,6 +402,9 @@ function Pricing() {
                     </li>
                   ))}
                 </ul>
+                <p className="mb-4 text-xs text-muted-foreground">
+                  A message is any LLM request or assistant action. Voice notes count as 1 message each.
+                </p>
                 <Button
                   asChild
                   className={cn(
@@ -512,8 +517,8 @@ function Testimonials() {
             >
               <CardContent className="p-6">
                 <div className="mb-4 flex items-center gap-3">
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage src={q.img || "/placeholder.svg"} alt={`${q.name} avatar`} />
+                    <Avatar className="h-10 w-10">
+                    <AvatarImage src={q.img || "/placeholder.svg"} alt={`${q.name} avatar`} loading="lazy" />
                     <AvatarFallback>{q.name.slice(0, 1)}</AvatarFallback>
                   </Avatar>
                   <div>
@@ -566,8 +571,9 @@ function DashboardPlaceholder() {
             <CardContent>
               <img
                 src="/placeholder.svg?height=400&width=700"
-                alt="Placeholder for the MCP Dashboard diagram"
+                alt="Diagram placeholder showing how the optional MCP dashboard connects tools"
                 className="w-full rounded-md border"
+                loading="lazy"
               />
             </CardContent>
           </Card>
