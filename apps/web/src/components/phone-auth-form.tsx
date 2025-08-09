@@ -8,6 +8,8 @@ import Loader from "./loader";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
+import { PhoneInput } from "./ui/phone-input";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "./ui/input-otp";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -16,6 +18,7 @@ export default function PhoneAuthForm() {
   const [step, setStep] = useState<"phone" | "otp">("phone");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
+  const [isPhoneValid, setIsPhoneValid] = useState(false);
 
   const phoneForm = useForm({
     defaultValues: {
@@ -97,14 +100,13 @@ export default function PhoneAuthForm() {
               {(field) => (
                 <div className="space-y-2">
                   <Label htmlFor={field.name}>Phone Number</Label>
-                  <Input
+                  <PhoneInput
                     id={field.name}
-                    name={field.name}
-                    type="tel"
-                    placeholder="+1234567890"
                     value={field.state.value}
                     onBlur={field.handleBlur}
-                    onChange={(e) => field.handleChange(e.target.value)}
+                    onChange={(value) => field.handleChange(value)}
+                    onValidationChange={setIsPhoneValid}
+                    defaultCountry="US"
                   />
                   {field.state.meta.errors.map((error) => (
                     <p key={error?.message} className="text-red-500 text-sm">
@@ -121,7 +123,7 @@ export default function PhoneAuthForm() {
               <Button
                 type="submit"
                 className="w-full"
-                disabled={!state.canSubmit || state.isSubmitting}
+                disabled={!state.canSubmit || state.isSubmitting || !isPhoneValid}
               >
                 {state.isSubmitting ? "Sending OTP..." : "Continue"}
               </Button>
@@ -158,17 +160,23 @@ export default function PhoneAuthForm() {
             {(field) => (
               <div className="space-y-2">
                 <Label htmlFor={field.name}>Verification Code</Label>
-                <Input
-                  id={field.name}
-                  name={field.name}
-                  type="text"
-                  placeholder="123456"
-                  maxLength={6}
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  className="text-center text-2xl tracking-widest"
-                />
+                <div className="flex justify-center">
+                  <InputOTP
+                    maxLength={6}
+                    value={field.state.value}
+                    onChange={(value) => field.handleChange(value)}
+                    onBlur={field.handleBlur}
+                  >
+                    <InputOTPGroup>
+                      <InputOTPSlot index={0} />
+                      <InputOTPSlot index={1} />
+                      <InputOTPSlot index={2} />
+                      <InputOTPSlot index={3} />
+                      <InputOTPSlot index={4} />
+                      <InputOTPSlot index={5} />
+                    </InputOTPGroup>
+                  </InputOTP>
+                </div>
                 {field.state.meta.errors.map((error) => (
                   <p key={error?.message} className="text-red-500 text-sm">
                     {error?.message}
