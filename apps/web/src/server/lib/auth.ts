@@ -4,6 +4,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db } from "../db";
 import * as schema from "../db/schema/auth";
 import { phoneNumber } from "better-auth/plugins";
+import { smsService } from "./sms";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -15,15 +16,13 @@ export const auth = betterAuth({
   },
   plugins: [phoneNumber({
     sendOTP: async ({ phoneNumber, code }) => {
-      // For now, just log the OTP code to console for testing
-      console.log(`📱 OTP for ${phoneNumber}: ${code}`);
-      console.log("=".repeat(50));
-      console.log(`Phone: ${phoneNumber}`);
-      console.log(`Code:  ${code}`);
-      console.log("=".repeat(50));
-      
-      // You can set up Twilio or other SMS providers later
-      return Promise.resolve();
+      try {
+        await smsService.sendOTP(phoneNumber, code);
+      } catch (error) {
+        console.error('Failed to send OTP:', error);
+        // Re-throw to let better-auth handle the error appropriately
+        throw error;
+      }
     },
     signUpOnVerification: {
       getTempEmail: (phoneNumber) => `${phoneNumber}@temp.local`,
