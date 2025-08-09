@@ -4,7 +4,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db } from "../db";
 import * as schema from "../db/schema/auth";
 import { phoneNumber } from "better-auth/plugins";
-import { smsService } from "./sms";
+import { sendOTP } from "./sms";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -16,11 +16,12 @@ export const auth = betterAuth({
   },
   plugins: [phoneNumber({
     sendOTP: async ({ phoneNumber, code }) => {
-      try {
-        await smsService.sendOTP(phoneNumber, code);
-      } catch (error) {
-        console.error('Failed to send OTP:', error);
-        // Re-throw to let better-auth handle the error appropriately
+      const result = await sendOTP(phoneNumber, code);
+      if (result.isErr()) {
+        console.error('Failed to send OTP:', result.error);
+        // Convert to Error for better-auth compatibility
+        const error = new Error(result.error.message);
+        error.cause = result.error.cause;
         throw error;
       }
     },

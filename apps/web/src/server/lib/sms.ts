@@ -1,114 +1,101 @@
 import { Twilio } from 'twilio';
+import { Result, ok, err, ResultAsync, fromThrowable } from 'neverthrow';
 
-interface SMSConfig {
-  accountSid: string;
-  authToken: string;
-  fromNumber: string;
-}
+// Simple error type for SMS operations
+type SMSError = {
+  readonly type: 'CONFIG_MISSING' | 'SEND_FAILED' | 'INVALID_INPUT';
+  readonly message: string;
+  readonly cause?: unknown;
+};
 
-interface SendSMSParams {
-  to: string;
-  message: string;
-}
+// Configuration type
+type SMSConfig = {
+  readonly accountSid: string;
+  readonly authToken: string;
+  readonly fromNumber: string;
+};
 
-class SMSService {
-  private client: Twilio | null = null;
-  private config: SMSConfig | null = null;
-  private isDevelopment: boolean;
+// Helper functions
+const isDevelopment = () => process.env.NODE_ENV === 'development';
 
-  constructor() {
-    this.isDevelopment = process.env.NODE_ENV === 'development';
-    this.initializeConfig();
+const validateInput = (phoneNumber: string, code: string): Result<[string, string], SMSError> => {
+  if (!phoneNumber?.trim()) {
+    return err({ type: 'INVALID_INPUT', message: 'Phone number is required' });
+  }
+  if (!code?.trim()) {
+    return err({ type: 'INVALID_INPUT', message: 'Verification code is required' });
+  }
+  return ok([phoneNumber.trim(), code.trim()]);
+};
+
+const getConfig = (): Result<SMSConfig, SMSError> => {
+  const accountSid = process.env.TWILIO_ACCOUNT_SID;
+  const authToken = process.env.TWILIO_AUTH_TOKEN;
+  const fromNumber = process.env.TWILIO_NUMBER;
+
+  if (!accountSid || !authToken || !fromNumber) {
+    return err({
+      type: 'CONFIG_MISSING',
+      message: 'Missing Twilio environment variables: TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_NUMBER'
+    });
   }
 
-  private initializeConfig(): void {
-    const accountSid = process.env.TWILIO_ACCOUNT_SID;
-    const authToken = process.env.TWILIO_AUTH_TOKEN;
-    const fromNumber = process.env.TWILIO_NUMBER;
+  return ok({ accountSid, authToken, fromNumber });
+};
 
-    if (accountSid && authToken && fromNumber) {
-      this.config = {
-        accountSid,
-        authToken,
-        fromNumber,
-      };
-      
-      try {
-        this.client = new Twilio(accountSid, authToken);
-      } catch (error) {
-        console.error('Failed to initialize Twilio client:', error);
-        this.client = null;
-      }
-    } else {
-      if (!this.isDevelopment) {
-        console.warn('Twilio configuration missing. Required env vars: TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_NUMBER');
-      }
-    }
+const createClient = fromThrowable(
+  (config: SMSConfig) => new Twilio(config.accountSid, config.authToken),
+  (error) => ({ type: 'SEND_FAILED' as const, message: 'Failed to create Twilio client', cause: error })
+);
+
+const logDevOTP = (phoneNumber: string, code: string): void => {
+  console.log('\n' + '='.repeat(50));
+  console.log(`📱 Development OTP`);
+  console.log(`Phone: ${phoneNumber}`);
+  console.log(`Code:  ${code}`);
+  console.log('='.repeat(50) + '\n');
+};
+
+const sendTwilioSMS = (client: Twilio, config: SMSConfig, phoneNumber: string, code: string): ResultAsync<void, SMSError> =>
+  ResultAsync.fromPromise(
+    client.messages.create({
+      body: `Your verification code is: ${code}`,
+      from: config.fromNumber,
+      to: phoneNumber,
+    }),
+    (error) => ({ type: 'SEND_FAILED' as const, message: 'Failed to send SMS', cause: error })
+  ).map((message) => {
+    console.log(`✅ SMS sent successfully (SID: ${message.sid})`);
+  });
+
+// Main function - simple and functional
+export const sendOTP = async (phoneNumber: string, code: string): Promise<Result<void, SMSError>> => {
+  const inputResult = validateInput(phoneNumber, code);
+  if (inputResult.isErr()) {
+    return err(inputResult.error);
   }
 
-  private logToConsole(phoneNumber: string, code: string): void {
-    console.log(`📱 OTP for ${phoneNumber}: ${code}`);
-    console.log("=".repeat(50));
-    console.log(`Phone: ${phoneNumber}`);
-    console.log(`Code:  ${code}`);
-    console.log("=".repeat(50));
+  const [validPhone, validCode] = inputResult.value;
+
+  // Development mode: just log
+  if (isDevelopment()) {
+    logDevOTP(validPhone, validCode);
+    return ok(undefined);
   }
 
-  async sendOTP(phoneNumber: string, code: string): Promise<void> {
-    // Always log to console in development mode
-    if (this.isDevelopment) {
-      this.logToConsole(phoneNumber, code);
-    }
-
-    // If Twilio is not configured or we're in development mode, just return
-    if (!this.client || !this.config || this.isDevelopment) {
-      return Promise.resolve();
-    }
-
-    try {
-      const message = `Your verification code is: ${code}`;
-      await this.sendSMS({
-        to: phoneNumber,
-        message,
-      });
-      
-      console.log(`✅ OTP sent successfully to ${phoneNumber}`);
-    } catch (error) {
-      console.error(`❌ Failed to send OTP to ${phoneNumber}:`, error);
-      throw new Error('Failed to send OTP. Please try again.');
-    }
+  // Production mode: send via Twilio
+  const configResult = getConfig();
+  if (configResult.isErr()) {
+    return err(configResult.error);
   }
 
-  private async sendSMS({ to, message }: SendSMSParams): Promise<void> {
-    if (!this.client || !this.config) {
-      throw new Error('SMS service not properly configured');
-    }
-
-    try {
-      const result = await this.client.messages.create({
-        body: message,
-        from: this.config.fromNumber,
-        to: to,
-      });
-
-      console.log(`SMS sent with SID: ${result.sid}`);
-    } catch (error) {
-      console.error('Twilio SMS error:', error);
-      throw error;
-    }
+  const clientResult = createClient(configResult.value);
+  if (clientResult.isErr()) {
+    return err(clientResult.error);
   }
 
-  isConfigured(): boolean {
-    return this.client !== null && this.config !== null;
-  }
+  const sendResult = await sendTwilioSMS(clientResult.value, configResult.value, validPhone, validCode);
+  return sendResult;
+};
 
-  getStatus(): { configured: boolean; development: boolean } {
-    return {
-      configured: this.isConfigured(),
-      development: this.isDevelopment,
-    };
-  }
-}
-
-// Export a singleton instance
-export const smsService = new SMSService();
+export type { SMSError };
