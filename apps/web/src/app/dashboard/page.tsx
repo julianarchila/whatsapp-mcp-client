@@ -1,62 +1,30 @@
-"use client"
-
-import { authClient } from "@/lib/auth-client"
-import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { auth } from "@/server/lib/auth"
+import { headers } from "next/headers"
+import { redirect } from "next/navigation"
 
 import { IntegrationsSection } from "@/components/integrations-section"
 import { mockIntegrations } from "./integrations.data"
-import type { Integration } from "@/components/integration-card"
 import { ModeToggle } from "@/components/mode-toggle"
+import { SignOutButton } from "@/components/sign-out-button"
 
-export default function Dashboard() {
-  const [integrations, setIntegrations] = useState<Integration[]>(mockIntegrations)
+export default async function Dashboard() {
+  const session = await auth.api.getSession({
+    headers: await headers()
+  })
 
-  const router = useRouter()
-  const { data: session, isPending } = authClient.useSession()
-
-  useEffect(() => {
-    if (!session && !isPending) {
-      router.push("/login")
-    }
-  }, [session, isPending, router])
-
-  if (isPending) {
-    return <div>Loading...</div>
-  }
-
-  const handleToggleIntegration = (id: string) => {
-    setIntegrations((prev) =>
-      prev.map((integration) =>
-        integration.id === id
-          ? { ...integration, isActive: !integration.isActive }
-          : integration
-      )
-    )
-  }
-
-  const handleConfigureIntegration = (id: string) => {
-    setIntegrations((prev) =>
-      prev.map((integration) =>
-        integration.id === id ? { ...integration, isConfigured: true } : integration
-      )
-    )
+  if (!session) {
+    redirect("/login")
   }
 
   return (
     <div className="min-h-screen bg-background">
-      <DashboardHeader />
-      <IntegrationsSection
-        integrations={integrations}
-        setIntegrations={setIntegrations}
-        onToggleIntegration={handleToggleIntegration}
-        onConfigureIntegration={handleConfigureIntegration}
-      />
+      <DashboardHeader session={session} />
+      <IntegrationsSection initialIntegrations={mockIntegrations} />
     </div>
   )
 }
 
-function DashboardHeader() {
+function DashboardHeader({ session }: { session: any }) {
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border bg-background/60 backdrop-blur supports-[backdrop-filter]:bg-background/50">
       <div className="mx-auto max-w-7xl px-4 py-3 md:py-4">
@@ -70,9 +38,13 @@ function DashboardHeader() {
               <span className="text-xs text-muted-foreground">Dashboard</span>
             </div>
           </div>
-          <div className="hidden items-center gap-3 sm:flex">
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:block">
+              <span className="text-sm text-muted-foreground">Welcome, </span>
+              <span className="text-sm font-medium">{session.user.name}</span>
+            </div>
             <ModeToggle />
-            <span className="text-xs text-muted-foreground">Manage your MCP connectors</span>
+            <SignOutButton />
           </div>
         </div>
       </div>

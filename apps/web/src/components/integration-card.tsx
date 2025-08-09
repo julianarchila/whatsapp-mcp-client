@@ -3,16 +3,23 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
-import type { LucideIcon } from "lucide-react"
+import { Github, CloudSun, Zap } from "lucide-react"
 
 export interface Integration {
   id: string
   name: string
   description?: string
-  icon: LucideIcon
+  icon: string // Changed to string identifier
   isActive: boolean
   category?: string
 }
+
+// Icon mapping for client component
+const iconMap = {
+  'github': Github,
+  'cloud-sun': CloudSun,
+  'zap': Zap,
+} as const
 
 interface IntegrationCardProps {
   integration: Integration
@@ -25,7 +32,7 @@ export function IntegrationCard({
   onToggle,
   onConfigure,
 }: IntegrationCardProps) {
-  const IconComponent = integration.icon
+  const IconComponent = iconMap[integration.icon as keyof typeof iconMap] || Zap
 
   return (
     <Card className="border border-muted/60 transition-all hover:-translate-y-[1px] hover:shadow-md">

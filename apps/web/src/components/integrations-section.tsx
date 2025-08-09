@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Search, Filter, Zap } from "lucide-react"
+import { Search, Filter } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { IntegrationCard, type Integration } from "./integration-card"
@@ -9,10 +9,7 @@ import { DiscoverToolsModal } from "./discover-tools-modal"
 import { CustomIntegrationPopover } from "./custom-integration-popover"
 
 interface IntegrationsSectionProps {
-  integrations: Integration[]
-  setIntegrations: React.Dispatch<React.SetStateAction<Integration[]>>
-  onToggleIntegration: (id: string) => void
-  onConfigureIntegration: (id: string) => void
+  initialIntegrations: Integration[]
 }
 
 const AVAILABLE_TOOLS = [
@@ -20,27 +17,43 @@ const AVAILABLE_TOOLS = [
     id: "figma",
     name: "Figma",
     description: "Design collaboratively with your team.",
-    icon: Zap,
+    icon: "zap",
     category: "Design",
   },
   {
     id: "jira",
     name: "Jira",
     description: "Track and manage your team's projects.",
-    icon: Zap,
+    icon: "zap",
     category: "Productivity",
   },
 ];
 
 export function IntegrationsSection({
-  integrations,
-  setIntegrations,
-  onToggleIntegration,
-  onConfigureIntegration,
+  initialIntegrations,
 }: IntegrationsSectionProps) {
+  const [integrations, setIntegrations] = useState<Integration[]>(initialIntegrations)
   const [searchTerm, setSearchTerm] = useState("")
   const [showActiveOnly, setShowActiveOnly] = useState(false)
   const [showDiscoverModal, setShowDiscoverModal] = useState(false)
+
+  const handleToggleIntegration = (id: string) => {
+    setIntegrations((prev) =>
+      prev.map((integration) =>
+        integration.id === id
+          ? { ...integration, isActive: !integration.isActive }
+          : integration
+      )
+    )
+  }
+
+  const handleConfigureIntegration = (id: string) => {
+    setIntegrations((prev) =>
+      prev.map((integration) =>
+        integration.id === id ? { ...integration, isConfigured: true } : integration
+      )
+    )
+  }
 
   const filteredIntegrations = integrations.filter((integration) => {
     const matchesSearch =
@@ -54,7 +67,7 @@ export function IntegrationsSection({
     const newIntegration: Integration = {
       id: `custom-${Date.now()}`,
       name: toolData.name,
-      icon: Zap,
+      icon: "zap",
       category: "Custom",
       isActive: false,
     }
@@ -113,8 +126,8 @@ export function IntegrationsSection({
               <IntegrationCard
                 key={integration.id}
                 integration={integration}
-                onToggle={onToggleIntegration}
-                onConfigure={onConfigureIntegration}
+                onToggle={handleToggleIntegration}
+                onConfigure={handleConfigureIntegration}
               />
             ))}
           </div>

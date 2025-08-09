@@ -1,7 +1,3 @@
-import {
-  Github,
-  CloudSun
-} from "lucide-react";
 import type { Integration } from "@/components/integration-card";
 
 /**
@@ -12,14 +8,14 @@ export const mockIntegrations: Integration[] = [
     id: "weather-mcp",
     name: "Clima",
     description: "Conoce el clima de la ciudad que quiereas, con tan solo el nombre.",
-    icon: CloudSun,
+    icon: "cloud-sun",
     isActive: true,
   },
   {
     id: "github",
     name: "Github",
     description: "Sincroniza repositorios y gestiona pull requests automáticamente",
-    icon: Github,
+    icon: "github",
     isActive: false,
   },
 ];

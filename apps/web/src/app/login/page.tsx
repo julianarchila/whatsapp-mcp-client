@@ -1,16 +1,16 @@
-"use client"
 
-import SignInForm from "@/components/sign-in-form";
-import SignUpForm from "@/components/sign-up-form";
-import { useState } from "react";
+import PhoneAuthForm from "@/components/phone-auth-form";
+import { auth } from "@/server/lib/auth";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
+export default async function LoginPage() {
+  const session = await auth.api.getSession({
+    headers: await headers()
+  })
 
-export default function LoginPage() {
-  const [showSignIn, setShowSignIn] = useState(false);
-
-  return showSignIn ? (
-    <SignInForm onSwitchToSignUp={() => setShowSignIn(false)} />
-  ) : (
-    <SignUpForm onSwitchToSignIn={() => setShowSignIn(true)} />
-  );
+  if (session) {
+    redirect("/dashboard")
+  }
+  return <PhoneAuthForm />;
 }
