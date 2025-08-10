@@ -13,7 +13,6 @@ export const AVAILABLE_TOOLS = [
         name: "Figma",
         description: "Plataforma de diseño y colaboración para equipos.",
         icon: Figma,
-        category: "Diseño",
         verified: true,
     },
     {
@@ -21,7 +20,6 @@ export const AVAILABLE_TOOLS = [
         name: "Linear",
         description: "Seguimiento de incidencias y gestión de proyectos para equipos de desarrollo.",
         icon: GitBranch,
-        category: "Desarrollo",
         verified: true,
     },
     {
@@ -29,7 +27,6 @@ export const AVAILABLE_TOOLS = [
         name: "Trello",
         description: "Gestión visual de proyectos con tableros, listas y tarjetas.",
         icon: Trello,
-        category: "Productividad",
         verified: true,
     },
     {
@@ -37,7 +34,6 @@ export const AVAILABLE_TOOLS = [
         name: "Discord",
         description: "Comunicación por voz, video y texto para comunidades.",
         icon: MessageCircle,
-        category: "Comunicación",
         verified: true,
     },
     {
@@ -45,7 +41,6 @@ export const AVAILABLE_TOOLS = [
         name: "Zoom",
         description: "Plataforma de videoconferencias y reuniones en línea.",
         icon: Video,
-        category: "Comunicación",
         verified: true,
     },
     {
@@ -53,7 +48,6 @@ export const AVAILABLE_TOOLS = [
         name: "Adobe Creative Suite",
         description: "Herramientas creativas profesionales para diseño y creación de contenido.",
         icon: Palette,
-        category: "Diseño",
         verified: true,
     },
 ]
@@ -102,10 +96,7 @@ export function DiscoverToolsModal({ open, onOpenChange, onAddTool }: DiscoverTo
                                     </div>
                                 </div>
 
-                                <div className="flex items-center justify-between">
-                                    <Badge variant="secondary">
-                                        {tool.category}
-                                    </Badge>
+                                <div className="flex items-center justify-center">
                                     <Button
                                         onClick={() => onAddTool(tool.id)}
                                         variant="outline"

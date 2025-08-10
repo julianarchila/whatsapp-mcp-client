@@ -18,14 +18,12 @@ const AVAILABLE_TOOLS = [
     name: "Figma",
     description: "Design collaboratively with your team.",
     icon: "zap",
-    category: "Design",
   },
   {
     id: "jira",
     name: "Jira",
     description: "Track and manage your team's projects.",
     icon: "zap",
-    category: "Productivity",
   },
 ];
 
@@ -68,7 +66,6 @@ export function IntegrationsSection({
       id: `custom-${Date.now()}`,
       name: toolData.name,
       icon: "zap",
-      category: "Custom",
       isActive: false,
     }
     setIntegrations(prev => [...prev, newIntegration])
@@ -92,7 +89,7 @@ export function IntegrationsSection({
                 onClick={() => setShowDiscoverModal(true)}
                 className="transition-transform hover:scale-[1.01]"
               >
-                Discover Integrations
+                Discover Tools
               </Button>
               <CustomIntegrationPopover onAddTool={handleAddCustomTool} />
             </div>
@@ -171,7 +168,6 @@ export function IntegrationsSection({
               id: newTool.id,
               name: newTool.name,
               icon: newTool.icon,
-              category: newTool.category,
               isActive: false,
               isConfigured: false,
             }
