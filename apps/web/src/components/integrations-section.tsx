@@ -7,12 +7,11 @@ import { Button } from "@/components/ui/button"
 import { IntegrationCard } from "./integration-card"
 import { DiscoverToolsModal } from "./discover-tools-modal"
 import { CustomIntegrationPopover } from "./custom-integration-popover"
-import { useIntegratedTools } from "@/hooks/use-tools"
-import { useIntegrations } from "@/hooks/use-tools"
+import { useIntegratedTools, useIntegrations } from "@/hooks/use-tools"
 
 export function IntegrationsSection() {
   const { integratedTools, isLoading, error } = useIntegratedTools()
-  const { toggleIntegration, isToggling } = useIntegrations()
+  const { toggleIntegration } = useIntegrations()
 
   const [searchTerm, setSearchTerm] = useState("")
   const [showActiveOnly, setShowActiveOnly] = useState(false)
@@ -100,7 +99,10 @@ export function IntegrationsSection() {
                   })
                 }
                 onConfigure={(id) => { }}
-                isLoading={isToggling}
+                isLoading={
+                  toggleIntegration.isPending &&
+                  toggleIntegration.variables?.id === integration.id
+                }
               />
             ))}
           </div>
