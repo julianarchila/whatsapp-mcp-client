@@ -43,15 +43,20 @@ export const toolRouter = router({
             description: z.string().optional(),
         }))
         .mutation(async ({ input, ctx }) => {
-            return await db.insert(tool).values({
-                id: generateId(),
-                name: input.name,
-                apiUrl: input.apiUrl,
-                description: input.description,
-                createdBy: ctx.session.user.id,
-                createdAt: new Date(),
-                updatedAt: new Date(),
-            });
+            const [createdTool] = await db
+                .insert(tool)
+                .values({
+                    id: generateId(),
+                    name: input.name,
+                    apiUrl: input.apiUrl,
+                    description: input.description,
+                    createdBy: ctx.session.user.id,
+                    createdAt: new Date(),
+                    updatedAt: new Date(),
+                })
+                .returning();
+
+            return createdTool;
         }),
 
     // Update tool
