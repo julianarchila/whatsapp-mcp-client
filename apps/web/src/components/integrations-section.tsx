@@ -56,11 +56,7 @@ export function IntegrationsSection() {
               >
                 Discover Tools
               </Button>
-              <CustomIntegrationPopover
-                onAddTool={(toolData) => {
-
-                }}
-              />
+              <CustomIntegrationPopover />
             </div>
             <div className="flex items-center space-x-3">
               <div className="relative">
