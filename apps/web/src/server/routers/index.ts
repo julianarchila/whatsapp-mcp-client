@@ -3,6 +3,8 @@ import {
   router,
 } from "../lib/trpc";
 
+import { toolRouter } from "./tool";
+
 export const appRouter = router({
   healthCheck: publicProcedure.query(() => {
     return "OK";
@@ -13,5 +15,6 @@ export const appRouter = router({
       user: ctx.session.user,
     };
   }),
+  tool: toolRouter,
 });
 export type AppRouter = typeof appRouter;
