@@ -3,7 +3,6 @@ import { headers } from "next/headers"
 import { redirect } from "next/navigation"
 
 import { IntegrationsSection } from "@/components/integrations-section"
-import { mockIntegrations } from "./integrations.data"
 import { ModeToggle } from "@/components/mode-toggle"
 import { SignOutButton } from "@/components/sign-out-button"
 
@@ -19,7 +18,7 @@ export default async function Dashboard() {
   return (
     <div className="min-h-screen bg-background">
       <DashboardHeader session={session} />
-      <IntegrationsSection initialIntegrations={mockIntegrations} />
+      <IntegrationsSection />
     </div>
   )
 }
