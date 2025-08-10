@@ -4,6 +4,7 @@ import {
 } from "../lib/trpc";
 
 import { toolRouter } from "./tool";
+import { integrationRouter } from "./integration";
 
 export const appRouter = router({
   healthCheck: publicProcedure.query(() => {
@@ -16,5 +17,6 @@ export const appRouter = router({
     };
   }),
   tool: toolRouter,
+  integration: integrationRouter,
 });
 export type AppRouter = typeof appRouter;
