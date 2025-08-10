@@ -1,5 +1,6 @@
 import { Twilio } from 'twilio';
 import { Result, ok, err, ResultAsync, fromThrowable } from 'neverthrow';
+import { env } from '@env'
 
 // Simple error type for SMS operations
 type SMSError = {
@@ -16,7 +17,7 @@ type SMSConfig = {
 };
 
 // Helper functions
-const isDevelopment = () => process.env.NODE_ENV === 'development';
+const isDevelopment = () => env.NODE_ENV === 'development';
 
 const validateInput = (phoneNumber: string, code: string): Result<[string, string], SMSError> => {
   if (!phoneNumber?.trim()) {
@@ -29,9 +30,9 @@ const validateInput = (phoneNumber: string, code: string): Result<[string, strin
 };
 
 const getConfig = (): Result<SMSConfig, SMSError> => {
-  const accountSid = process.env.TWILIO_ACCOUNT_SID;
-  const authToken = process.env.TWILIO_AUTH_TOKEN;
-  const fromNumber = process.env.TWILIO_NUMBER;
+  const accountSid = env.TWILIO_ACCOUNT_SID;
+  const authToken = env.TWILIO_AUTH_TOKEN;
+  const fromNumber = env.TWILIO_NUMBER;
 
   if (!accountSid || !authToken || !fromNumber) {
     return err({

@@ -1,11 +1,12 @@
 import twilio from 'twilio';
 import { validateTwilioWebhook, getActualUrl } from '@/lib/twilio';
 import chatbot from '@/lib/chatbot';
+import { env } from '@env';
 
 export async function POST(request: Request) {
   try {
     // Validate Twilio signature if auth token is configured
-    const authToken = process.env.TWILIO_AUTH_TOKEN;
+    const authToken = env.TWILIO_AUTH_TOKEN;
     const signature = request.headers.get('x-twilio-signature');
 
     if (authToken && signature) {
