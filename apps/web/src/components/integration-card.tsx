@@ -11,7 +11,6 @@ export interface Integration {
   description?: string
   icon: string // Changed to string identifier
   isActive: boolean
-  category?: string
 }
 
 // Icon mapping for client component
