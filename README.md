@@ -38,6 +38,12 @@ pnpm db:start
 pnpm db:push
 ```
 
+4. Apply the seed tools (Optional)
+```bash
+pnpm seed:tools
+```
+
+
 Then, run the development server:
 
 ```bash
