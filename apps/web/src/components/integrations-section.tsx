@@ -4,74 +4,39 @@ import { useState } from "react"
 import { Search, Filter } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { IntegrationCard, type Integration } from "./integration-card"
+import { IntegrationCard } from "./integration-card"
 import { DiscoverToolsModal } from "./discover-tools-modal"
 import { CustomIntegrationPopover } from "./custom-integration-popover"
+import { useIntegratedTools } from "@/hooks/use-tools"
+import { useIntegrations } from "@/hooks/use-tools"
 
-interface IntegrationsSectionProps {
-  initialIntegrations: Integration[]
-}
+export function IntegrationsSection() {
+  const { integratedTools, isLoading, error } = useIntegratedTools()
+  const { toggleIntegration, isToggling } = useIntegrations()
 
-const AVAILABLE_TOOLS = [
-  {
-    id: "figma",
-    name: "Figma",
-    description: "Design collaboratively with your team.",
-    icon: "zap",
-  },
-  {
-    id: "jira",
-    name: "Jira",
-    description: "Track and manage your team's projects.",
-    icon: "zap",
-  },
-];
-
-export function IntegrationsSection({
-  initialIntegrations,
-}: IntegrationsSectionProps) {
-  const [integrations, setIntegrations] = useState<Integration[]>(initialIntegrations)
   const [searchTerm, setSearchTerm] = useState("")
   const [showActiveOnly, setShowActiveOnly] = useState(false)
   const [showDiscoverModal, setShowDiscoverModal] = useState(false)
 
-  const handleToggleIntegration = (id: string) => {
-    setIntegrations((prev) =>
-      prev.map((integration) =>
-        integration.id === id
-          ? { ...integration, isActive: !integration.isActive }
-          : integration
-      )
-    )
+  if (isLoading) {
+    return <p>Loading integrations...</p>
   }
 
-  const handleConfigureIntegration = (id: string) => {
-    setIntegrations((prev) =>
-      prev.map((integration) =>
-        integration.id === id ? { ...integration, isConfigured: true } : integration
-      )
-    )
+  if (error) {
+    return <p>Failed to load integrations.</p>
   }
 
-  const filteredIntegrations = integrations.filter((integration) => {
+  const filteredIntegrations = integratedTools.filter((integration) => {
+    const name = integration.tool?.name || ""
+    const description = integration.tool?.description || ""
     const matchesSearch =
-      integration.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (integration.description?.toLowerCase() ?? '').includes(searchTerm.toLowerCase())
-    const matchesFilter = !showActiveOnly || integration.isActive
+      name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      description.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesFilter = !showActiveOnly || integration.isEnabled
     return matchesSearch && matchesFilter
   })
 
-  const handleAddCustomTool = (toolData: { name: string; url: string; apiKey: string }) => {
-    const newIntegration: Integration = {
-      id: `custom-${Date.now()}`,
-      name: toolData.name,
-      icon: "zap",
-      isActive: false,
-    }
-    setIntegrations(prev => [...prev, newIntegration])
-  }
-
-  const activeCount = integrations.filter((i) => i.isActive).length
+  const activeCount = integratedTools.filter((i) => i.isEnabled).length
 
   return (
     <div className="bg-background">
@@ -91,7 +56,11 @@ export function IntegrationsSection({
               >
                 Discover Tools
               </Button>
-              <CustomIntegrationPopover onAddTool={handleAddCustomTool} />
+              <CustomIntegrationPopover
+                onAddTool={(toolData) => {
+
+                }}
+              />
             </div>
             <div className="flex items-center space-x-3">
               <div className="relative">
@@ -122,9 +91,20 @@ export function IntegrationsSection({
             {filteredIntegrations.map((integration) => (
               <IntegrationCard
                 key={integration.id}
-                integration={integration}
-                onToggle={handleToggleIntegration}
-                onConfigure={handleConfigureIntegration}
+                integration={{
+                  id: integration.id,
+                  name: integration.tool!.name,
+                  description: integration.tool!.description,
+                  isActive: integration.isEnabled,
+                }}
+                onToggle={(id) =>
+                  toggleIntegration.mutate({
+                    id,
+                    isEnabled: !integration.isEnabled
+                  })
+                }
+                onConfigure={(id) => { }}
+                isLoading={isToggling}
               />
             ))}
           </div>
@@ -141,18 +121,6 @@ export function IntegrationsSection({
                 ? `No integrations match "${searchTerm}"`
                 : "No integrations available"}
             </p>
-            {(searchTerm || showActiveOnly) && (
-              <Button
-                variant="outline"
-                className="mt-4"
-                onClick={() => {
-                  setSearchTerm("")
-                  setShowActiveOnly(false)
-                }}
-              >
-                Clear filters
-              </Button>
-            )}
           </div>
         )}
       </div>
@@ -160,21 +128,6 @@ export function IntegrationsSection({
       <DiscoverToolsModal
         open={showDiscoverModal}
         onOpenChange={setShowDiscoverModal}
-        onAddTool={(toolId) => {
-          // Add the tool to integrations when user clicks
-          const newTool = AVAILABLE_TOOLS.find(tool => tool.id === toolId)
-          if (newTool) {
-            const integration = {
-              id: newTool.id,
-              name: newTool.name,
-              icon: newTool.icon,
-              isActive: false,
-              isConfigured: false,
-            }
-            setIntegrations(prev => [...prev, integration])
-            setShowDiscoverModal(false)
-          }
-        }}
       />
     </div>
   )
