@@ -9,6 +9,7 @@ export const integration = pgTable("integration", {
 
     // Authentication & Configuration
     apiKey: text('api_key').notNull(), // Encrypted API key for the tool
+    iv: text('iv').notNull(), // Initialization vector for encryption
 
     // Integration settings
     isEnabled: boolean('is_enabled').notNull().default(true),

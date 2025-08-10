@@ -1,13 +1,14 @@
 "use client"
 
 import { useState } from "react"
-import { Search, Filter } from "lucide-react"
+import { Search, Filter, Loader2Icon } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { IntegrationCard } from "./integration-card"
 import { DiscoverToolsModal } from "./discover-tools-modal"
 import { CustomIntegrationPopover } from "./custom-integration-popover"
 import { useIntegratedTools, useIntegrations } from "@/hooks/use-tools"
+import { AlertCircle } from "lucide-react"
 
 export function IntegrationsSection() {
   const { integratedTools, isLoading, error } = useIntegratedTools()
@@ -18,11 +19,23 @@ export function IntegrationsSection() {
   const [showDiscoverModal, setShowDiscoverModal] = useState(false)
 
   if (isLoading) {
-    return <p>Loading integrations...</p>
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader2Icon className="w-10 h-10 text-primary" />
+        <p className="ml-3 text-lg text-muted-foreground">Loading integrations...</p>
+      </div>
+    )
   }
 
   if (error) {
-    return <p>Failed to load integrations.</p>
+    return (
+      <div className="flex flex-col items-center justify-center h-64 text-red-500">
+        <AlertCircle className="w-12 h-12 mb-4" />
+        <h3 className="text-xl font-semibold mb-2">Error Loading Integrations</h3>
+        <p className="text-muted-foreground">Failed to retrieve integration data. Please try again later.</p>
+        <p className="text-sm text-muted-foreground mt-1">Error details: {error.message}</p>
+      </div>
+    )
   }
 
   const filteredIntegrations = integratedTools.filter((integration) => {
