@@ -1,7 +1,7 @@
 import twilio from 'twilio';
 import { validateTwilioWebhook, getActualUrl } from '@/lib/twilio';
 import chatbot from '@/lib/chatbot';
-import { env } from '@env.ts';
+import { env } from '@env';
 
 export async function POST(request: Request) {
   try {

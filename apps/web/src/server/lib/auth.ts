@@ -5,7 +5,7 @@ import { db } from "../db";
 import * as schema from "../db/schema/auth";
 import { phoneNumber } from "better-auth/plugins";
 import { sendOTP } from "./sms";
-import { env } from '@env.ts';
+import { env } from '@env';
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {

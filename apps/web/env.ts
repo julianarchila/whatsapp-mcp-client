@@ -7,6 +7,9 @@ export const env = createEnv({
     BETTER_AUTH_SECRET: z.string().min(1),
     TWILIO_AUTH_TOKEN: z.string().min(1),
     OPENAI_API_KEY: z.string().min(1),
+    NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+    TWILIO_ACCOUNT_SID: z.string().min(1),
+    TWILIO_NUMBER: z.string().min(1),
   },
   client: {
     // NEXT_PUBLIC_PUBLISHABLE_KEY: z.string().min(1),

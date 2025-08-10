@@ -3,38 +3,77 @@
 	"ui": "tui",
 	"tasks": {
 		"build": {
-			"dependsOn": ["^build"],
-			"inputs": ["$TURBO_DEFAULT$", ".env*"],
-			"outputs": ["dist/**"]
+			"dependsOn": [
+				"^build"
+			],
+			"inputs": [
+				"$TURBO_DEFAULT$",
+				".env*"
+			],
+			"outputs": [
+				".next/**",
+				"!.next/cache/**",
+				"dist/**"
+			],
+			"env": [
+				"POSTGRES_URL",
+				"BETTER_AUTH_SECRET",
+				"TWILIO_AUTH_TOKEN",
+				"OPENAI_API_KEY",
+				"TWILIO_ACCOUNT_SID",
+				"TWILIO_NUMBER"
+			]
 		},
 		"lint": {
-			"dependsOn": ["^lint"]
+			"dependsOn": [
+				"^lint"
+			]
 		},
 		"check-types": {
-			"dependsOn": ["^check-types"]
+			"dependsOn": [
+				"^check-types"
+			]
 		},
 		"dev": {
 			"cache": false,
-			"persistent": true
+			"persistent": true,
+			"env": [
+				"POSTGRES_URL",
+				"BETTER_AUTH_SECRET",
+				"TWILIO_AUTH_TOKEN",
+				"OPENAI_API_KEY",
+				"TWILIO_ACCOUNT_SID",
+				"TWILIO_NUMBER"
+			]
 		},
 		"db:push": {
 			"cache": false,
-			"persistent": true
+			"persistent": true,
+			"env": [
+				"POSTGRES_URL"
+			]
 		},
 		"db:studio": {
 			"cache": false,
-			"persistent": true
+			"persistent": true,
+			"env": [
+				"POSTGRES_URL"
+			]
 		},
 		"db:migrate": {
 			"cache": false,
-			"persistent": true
+			"persistent": true,
+			"env": [
+				"POSTGRES_URL"
+			]
 		},
 		"db:generate": {
 			"cache": false,
-			"persistent": true
-		}
-		
-		,
+			"persistent": true,
+			"env": [
+				"POSTGRES_URL"
+			]
+		},
 		"db:start": {
 			"cache": false,
 			"persistent": true
@@ -45,7 +84,10 @@
 		},
 		"db:watch": {
 			"cache": false,
-			"persistent": true
+			"persistent": true,
+			"env": [
+				"POSTGRES_URL"
+			]
 		},
 		"db:down": {
 			"cache": false,
