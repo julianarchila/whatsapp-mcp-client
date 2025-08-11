@@ -1,6 +1,6 @@
 import twilio from 'twilio';
 import { validateTwilioWebhook, getActualUrl } from '@/lib/twilio';
-import { chatbot } from '@/server/services/chatbot';
+import { chatbot, type ChatbotError } from '@/server/services/chatbot';
 import { getOrCreateWhatsAppUser, AuthError } from '@/server/services/auth';
 import { env } from '@env';
 
@@ -55,7 +55,23 @@ export async function POST(request: Request) {
       console.log(`📱 Processing message for user: ${user.id} (${user.name})`);
 
       // Process message with full chat history and persistence
-      const response = await chatbot(user.id, message);
+      const chatbotResult = await chatbot(user.id, message);
+      if (chatbotResult.isErr()) {
+        const error = chatbotResult.error;
+        console.error(`❌ Chatbot Error [${error.type}]: ${error.message}`);
+        if (error.cause) {
+          console.error('  Cause:', error.cause);
+        }
+        // Return error response to user
+        const twiml = new twilio.twiml.MessagingResponse();
+        twiml.message("I'm having trouble processing your message right now. Please try again in a moment.");
+        return new Response(twiml.toString(), {
+          status: 200,
+          headers: { 'Content-Type': 'text/xml' },
+        });
+      }
+
+      const response = chatbotResult.value;
 
       const twiml = new twilio.twiml.MessagingResponse();
       twiml.message(response);
