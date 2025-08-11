@@ -1,6 +1,6 @@
 import twilio from 'twilio';
 import { validateTwilioWebhook, getActualUrl } from '@/lib/twilio';
-import chatbot from '@/lib/chatbot';
+import { chatbot } from '@/server/services/chatbot';
 import { getOrCreateWhatsAppUser, AuthError } from '@/server/services/auth';
 import { env } from '@env';
 
@@ -42,14 +42,20 @@ export async function POST(request: Request) {
         if (error.cause) {
           console.error('  Cause:', error.cause);
         }
-        // Continue processing even if user creation fails
-      } else {
-        const user = userResult.value;
-        console.log(`📱 Processing message for user: ${user.id} (${user.name})`);
+        // Return error response to user
+        const twiml = new twilio.twiml.MessagingResponse();
+        twiml.message("Sorry, I'm having trouble processing your message right now. Please try again later.");
+        return new Response(twiml.toString(), {
+          status: 200,
+          headers: { 'Content-Type': 'text/xml' },
+        });
       }
 
-      // TODO: Add your chatbot logic here
-      const response = (await chatbot.text(message)).text;
+      const user = userResult.value;
+      console.log(`📱 Processing message for user: ${user.id} (${user.name})`);
+
+      // Process message with full chat history and persistence
+      const response = await chatbot(user.id, message);
 
       const twiml = new twilio.twiml.MessagingResponse();
       twiml.message(response);
