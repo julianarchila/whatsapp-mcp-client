@@ -1,6 +1,7 @@
 import twilio from 'twilio';
 import { validateTwilioWebhook, getActualUrl } from '@/lib/twilio';
 import chatbot from '@/lib/chatbot';
+import { getOrCreateWhatsAppUser, AuthError } from '@/server/services/auth';
 import { env } from '@env';
 
 export async function POST(request: Request) {
@@ -32,6 +33,20 @@ export async function POST(request: Request) {
       const message = body.Body as string;
 
       console.log(`Message from ${from}: ${message}`);
+
+      // Get or create user from WhatsApp phone number
+      const userResult = await getOrCreateWhatsAppUser(from);
+      if (userResult.isErr()) {
+        const error = userResult.error;
+        console.error(`❌ Auth Error [${error.type}]: ${error.message}`);
+        if (error.cause) {
+          console.error('  Cause:', error.cause);
+        }
+        // Continue processing even if user creation fails
+      } else {
+        const user = userResult.value;
+        console.log(`📱 Processing message for user: ${user.id} (${user.name})`);
+      }
 
       // TODO: Add your chatbot logic here
       const response = (await chatbot.text(message)).text;
