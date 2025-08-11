@@ -2,6 +2,7 @@ import { db } from "../db";
 import { user } from "../db/schema/auth";
 import { eq } from "drizzle-orm";
 import { Result, ok, err, ResultAsync, fromThrowable } from "neverthrow";
+import { randomUUID } from "crypto";
 
 // Error types for auth operations
 type AuthErrorType = 'USER_CREATION_FAILED' | 'USER_LOOKUP_FAILED' | 'INVALID_PHONE_NUMBER';
@@ -56,7 +57,7 @@ const findUserByPhoneNumber = (phoneNumber: string) =>
  */
 const createUserFromWhatsApp = (phoneNumber: string) => {
   // Generate a unique user ID
-  const userId = `whatsapp_${phoneNumber.replace(/[^0-9]/g, '')}_${Date.now()}`;
+  const userId = randomUUID();
   
   return ResultAsync.fromPromise(
     db.insert(user)
