@@ -1,6 +1,7 @@
 import twilio from 'twilio';
 import { validateTwilioWebhook, getActualUrl } from '@/lib/twilio';
-import chatbot from '@/lib/chatbot';
+import { chatbot, type ChatbotError } from '@/server/services/chatbot';
+import { getOrCreateWhatsAppUser, AuthError } from '@/server/services/auth';
 import { env } from '@env';
 
 export async function POST(request: Request) {
@@ -33,8 +34,44 @@ export async function POST(request: Request) {
 
       console.log(`Message from ${from}: ${message}`);
 
-      // TODO: Add your chatbot logic here
-      const response = (await chatbot.text(message)).text;
+      // Get or create user from WhatsApp phone number
+      const userResult = await getOrCreateWhatsAppUser(from);
+      if (userResult.isErr()) {
+        const error = userResult.error;
+        console.error(`❌ Auth Error [${error.type}]: ${error.message}`);
+        if (error.cause) {
+          console.error('  Cause:', error.cause);
+        }
+        // Return error response to user
+        const twiml = new twilio.twiml.MessagingResponse();
+        twiml.message("Sorry, I'm having trouble processing your message right now. Please try again later.");
+        return new Response(twiml.toString(), {
+          status: 200,
+          headers: { 'Content-Type': 'text/xml' },
+        });
+      }
+
+      const user = userResult.value;
+      console.log(`📱 Processing message for user: ${user.id} (${user.name})`);
+
+      // Process message with full chat history and persistence
+      const chatbotResult = await chatbot(user.id, message);
+      if (chatbotResult.isErr()) {
+        const error = chatbotResult.error;
+        console.error(`❌ Chatbot Error [${error.type}]: ${error.message}`);
+        if (error.cause) {
+          console.error('  Cause:', error.cause);
+        }
+        // Return error response to user
+        const twiml = new twilio.twiml.MessagingResponse();
+        twiml.message("I'm having trouble processing your message right now. Please try again in a moment.");
+        return new Response(twiml.toString(), {
+          status: 200,
+          headers: { 'Content-Type': 'text/xml' },
+        });
+      }
+
+      const response = chatbotResult.value;
 
       const twiml = new twilio.twiml.MessagingResponse();
       twiml.message(response);
