@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, boolean, serial, index, varchar, unique } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, boolean, integer, index, varchar, unique } from "drizzle-orm/pg-core";
 import { user } from "./auth";
 
 // Conversations table - one per WhatsApp user
@@ -19,7 +19,7 @@ export const conversation = pgTable("conversation", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
   
   // Analytics/tracking
-  messageCount: serial("message_count").notNull(),
+  messageCount: integer("message_count").notNull().default(0),
   
 }, (table) => [
   index("conversation_last_message_idx").on(table.lastMessageAt),

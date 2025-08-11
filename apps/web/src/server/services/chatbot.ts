@@ -1,7 +1,7 @@
 import { openai } from '@ai-sdk/openai';
 import { generateText, type ModelMessage } from 'ai';
 import { db } from '../db';
-import { asc, eq } from 'drizzle-orm';
+import { asc, eq, sql } from 'drizzle-orm';
 import { conversation as conversationTable, message as messageTable, type Message } from '../db/schema/chat';
 import { randomUUID } from 'crypto';
 import { Result, ok, err, ResultAsync } from 'neverthrow';
@@ -80,11 +80,23 @@ export const chatbot = async (userId: string, message: string) => {
 
 const saveMessage = (message: ModelMessage, conversationId: string) =>
     ResultAsync.fromPromise(
-        db.insert(messageTable).values({
-            id: randomUUID(),
-            content: message.content as string,
-            conversationId,
-            direction: message.role === 'user' ? 'inbound' : 'outbound',
+        db.transaction(async (tx) => {
+            // Insert the message
+            await tx.insert(messageTable).values({
+                id: randomUUID(),
+                content: message.content as string,
+                conversationId,
+                direction: message.role === 'user' ? 'inbound' : 'outbound',
+            });
+            
+            // Increment the message count for the conversation
+            await tx.update(conversationTable)
+                .set({ 
+                    messageCount: sql`${conversationTable.messageCount} + 1`,
+                    lastMessageAt: new Date(),
+                    updatedAt: new Date()
+                })
+                .where(eq(conversationTable.id, conversationId));
         }),
         (error) => new ChatbotError('MESSAGE_SAVE_FAILED', `Failed to save ${message.role} message`, error)
     ).map(() => void 0); // Return void on success
