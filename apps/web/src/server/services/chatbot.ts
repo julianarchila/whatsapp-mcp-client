@@ -12,7 +12,8 @@ type ChatbotErrorType =
   | 'CONVERSATION_CREATION_FAILED' 
   | 'MESSAGE_SAVE_FAILED' 
   | 'AI_GENERATION_FAILED' 
-  | 'INVALID_USER_ID';
+  | 'INVALID_USER_ID'
+  | 'INVALID_MESSAGE';
 
 export class ChatbotError extends Error {
   constructor(public readonly type: ChatbotErrorType, message: string, public readonly cause?: unknown) {
@@ -33,7 +34,7 @@ export const chatbot = async (userId: string, message: string) => {
         return err(new ChatbotError('INVALID_USER_ID', 'User ID is required'));
     }
     if (!message?.trim()) {
-        return err(new ChatbotError('INVALID_USER_ID', 'Message content is required'));
+        return err(new ChatbotError('INVALID_MESSAGE', 'Message content is required'));
     }
 
     // Load user message history
@@ -84,7 +85,7 @@ const saveMessage = (message: ModelMessage, conversationId: string) =>
             // Insert the message
             await tx.insert(messageTable).values({
                 id: randomUUID(),
-                content: message.content as string,
+                content:  typeof message.content === 'string' ? message.content : String(message.content),
                 conversationId,
                 direction: message.role === 'user' ? 'inbound' : 'outbound',
             });
