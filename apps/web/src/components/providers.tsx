@@ -2,8 +2,8 @@
 
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { ThemeProvider } from "./theme-provider";
-import { TRPCProvider } from "./trcp-provider";
 import { Toaster } from "./ui/sonner";
+import { TRPCReactProvider } from "@/lib/trpc/client";
 
 
 export default function Providers({
@@ -18,10 +18,10 @@ export default function Providers({
       enableSystem
       disableTransitionOnChange
     >
-      <TRPCProvider>
+      <TRPCReactProvider>
         {children}
         <ReactQueryDevtools />
-      </TRPCProvider>
+      </TRPCReactProvider>
       <Toaster richColors />
     </ThemeProvider>
   );
