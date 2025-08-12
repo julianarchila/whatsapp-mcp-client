@@ -6,19 +6,39 @@ import crypto from "crypto";
 import { env } from "@env";
 
 const algorithm = "aes-256-cbc";
-const secretKey = env.ENCRYPTION_KEY || "a-very-secret-key-of-32-bytes-dev";
+const secretKey = env.ENCRYPTION_KEY;
 
 function encrypt(text: string): { iv: string, encryptedData: string } {
+    if (!secretKey) {
+        throw new Error("ENCRYPTION_KEY environment variable is not set");
+    }
+    
+    // Validate key length for AES-256-CBC (32 bytes)
+    const keyBuffer = Buffer.from(secretKey, 'hex');
+    if (keyBuffer.length !== 32) {
+        throw new Error(`Invalid encryption key length. Expected 32 bytes (64 hex characters), got ${keyBuffer.length} bytes`);
+    }
+    
     const iv = crypto.randomBytes(16);
-    const cipher = crypto.createCipheriv(algorithm, Buffer.from(secretKey), iv);
+    const cipher = crypto.createCipheriv(algorithm, keyBuffer, iv);
     let encrypted = cipher.update(text);
     encrypted = Buffer.concat([encrypted, cipher.final()]);
     return { iv: iv.toString('hex'), encryptedData: encrypted.toString('hex') };
 }
 
 function decrypt(encryptedData: string, ivHex: string): string {
+    if (!secretKey) {
+        throw new Error("ENCRYPTION_KEY environment variable is not set");
+    }
+    
+    // Validate key length for AES-256-CBC (32 bytes)
+    const keyBuffer = Buffer.from(secretKey, 'hex');
+    if (keyBuffer.length !== 32) {
+        throw new Error(`Invalid encryption key length. Expected 32 bytes (64 hex characters), got ${keyBuffer.length} bytes`);
+    }
+    
     const iv = Buffer.from(ivHex, 'hex');
-    const decipher = crypto.createDecipheriv(algorithm, Buffer.from(secretKey), iv);
+    const decipher = crypto.createDecipheriv(algorithm, keyBuffer, iv);
     let decrypted = decipher.update(Buffer.from(encryptedData, 'hex'));
     decrypted = Buffer.concat([decrypted, decipher.final()]);
     return decrypted.toString();

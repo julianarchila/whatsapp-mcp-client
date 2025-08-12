@@ -1,60 +1,57 @@
-import { trpc } from '@/utils/trpc'
 import { toast } from 'sonner'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useTRPC} from '@/lib/trpc/client'
 
 // ============================================================================
 // TOOLS HOOKS
 // ============================================================================
 
 export const useTools = () => {
-    const utils = trpc.useUtils()
 
+    const trpc = useTRPC()
+    const queryClient = useQueryClient()
     // Queries
-    const getAllTools = () => trpc.tool.getAll.useQuery()
+    const getAllTools = () =>
+        useQuery(trpc.tool.getAll.queryOptions())
 
     const getToolById = (id: string) =>
-        trpc.tool.getById.useQuery(
-            { id },
-            { enabled: !!id }
-        )
+        useQuery(trpc.tool.getById.queryOptions({ id }, { enabled: !!id }))
 
     const searchTools = (query: string, enabled = true) =>
-        trpc.tool.search.useQuery(
-            { query },
-            { enabled: enabled && query.length > 0 }
-        )
+        useQuery(trpc.tool.search.queryOptions({ query }, { enabled: enabled && query.length > 0 }))
 
-    const getMyTools = () => trpc.tool.getMyTools.useQuery()
+    const getMyTools = () => useQuery(trpc.tool.getMyTools.queryOptions())
 
     // Mutations
-    const createTool = trpc.tool.create.useMutation({
+    const createTool = useMutation(trpc.tool.create.mutationOptions({
         onSuccess: () => {
             toast.success('Tool created successfully!')
-            utils.tool.invalidate()
+            queryClient.invalidateQueries({ queryKey: trpc.tool.getAll.queryKey() })
         },
         onError: (error) => {
             toast.error('Failed to create tool: ' + error.message)
         }
-    })
+    }))
 
-    const updateTool = trpc.tool.update.useMutation({
+    const updateTool = useMutation(trpc.tool.update.mutationOptions({
         onSuccess: () => {
             toast.success('Tool updated successfully!')
-            utils.tool.invalidate()
+            queryClient.invalidateQueries({ queryKey: trpc.tool.getAll.queryKey() })
         },
         onError: (error) => {
             toast.error('Failed to update tool: ' + error.message)
         }
-    })
+    }))
 
-    const deleteTool = trpc.tool.delete.useMutation({
+    const deleteTool = useMutation(trpc.tool.delete.mutationOptions({
         onSuccess: () => {
             toast.success('Tool deleted successfully!')
-            utils.tool.invalidate()
+            queryClient.invalidateQueries({ queryKey: trpc.tool.getAll.queryKey() })
         },
         onError: (error) => {
             toast.error('Failed to delete tool: ' + error.message)
         }
-    })
+    }))
 
     return {
         // Queries
@@ -69,7 +66,7 @@ export const useTools = () => {
         deleteTool,
 
         // Utils for manual invalidation
-        invalidateTools: () => utils.tool.invalidate(),
+        invalidateTools: () => queryClient.invalidateQueries({ queryKey: trpc.tool.getAll.queryKey() }),
 
         // Loading states
         isCreating: createTool.isPending,
@@ -83,64 +80,60 @@ export const useTools = () => {
 // ============================================================================
 
 export const useIntegrations = () => {
-    const utils = trpc.useUtils()
+    const trpc = useTRPC()
+    const queryClient = useQueryClient()
 
     // Queries
-    const getAllIntegrations = () => trpc.integration.getAll.useQuery()
+    const getAllIntegrations = () =>
+        useQuery(trpc.integration.getAll.queryOptions())
 
     const getIntegrationById = (id: string) =>
-        trpc.integration.getById.useQuery(
-            { id },
-            { enabled: !!id }
-        )
+        useQuery(trpc.integration.getById.queryOptions({ id }, { enabled: !!id }))
 
     const getIntegrationByToolId = (toolId: string) =>
-        trpc.integration.getByToolId.useQuery(
-            { toolId },
-            { enabled: !!toolId }
-        )
+        useQuery(trpc.integration.getByToolId.queryOptions({ toolId }, { enabled: !!toolId }))
 
     // Mutations
-    const createIntegration = trpc.integration.create.useMutation({
+    const createIntegration = useMutation(trpc.integration.create.mutationOptions({
         onSuccess: () => {
             toast.success('Integration created successfully!')
-            utils.integration.invalidate()
+            queryClient.invalidateQueries({ queryKey: trpc.integration.getAll.queryKey() })
         },
-        onError: (error) => {
+        onError: (error: any) => {
             toast.error('Failed to create integration: ' + error.message)
         }
-    })
+    }))
 
-    const updateIntegration = trpc.integration.update.useMutation({
+    const updateIntegration = useMutation(trpc.integration.update.mutationOptions({
         onSuccess: () => {
             toast.success('Integration updated successfully!')
-            utils.integration.invalidate()
+            queryClient.invalidateQueries({ queryKey: trpc.integration.getAll.queryKey() })
         },
-        onError: (error) => {
+        onError: (error: any) => {
             toast.error('Failed to update integration: ' + error.message)
         }
-    })
+    }))
 
-    const toggleIntegration = trpc.integration.toggleEnabled.useMutation({
-        onSuccess: (_, variables) => {
+    const toggleIntegration = useMutation(trpc.integration.toggleEnabled.mutationOptions({
+        onSuccess: (data: any, variables: { isEnabled: boolean }) => {
             const status = variables.isEnabled ? 'enabled' : 'disabled'
             toast.success(`Integration ${status} successfully!`)
-            utils.integration.invalidate()
+            queryClient.invalidateQueries({ queryKey: trpc.integration.getAll.queryKey() })
         },
-        onError: (error) => {
+        onError: (error: any) => {
             toast.error('Failed to toggle integration: ' + error.message)
         }
-    })
+    }))
 
-    const deleteIntegration = trpc.integration.delete.useMutation({
+    const deleteIntegration = useMutation(trpc.integration.delete.mutationOptions({
         onSuccess: () => {
             toast.success('Integration deleted successfully!')
-            utils.integration.invalidate()
+            queryClient.invalidateQueries({ queryKey: trpc.integration.getAll.queryKey() })
         },
-        onError: (error) => {
+        onError: (error: any) => {
             toast.error('Failed to delete integration: ' + error.message)
         }
-    })
+    }))
 
     return {
         // Queries
@@ -155,7 +148,7 @@ export const useIntegrations = () => {
         deleteIntegration,
 
         // Utils for manual invalidation
-        invalidateIntegrations: () => utils.integration.invalidate(),
+        invalidateIntegrations: () => queryClient.invalidateQueries({ queryKey: trpc.integration.getAll.queryKey() }),
 
         // Loading states
         isCreating: createIntegration.isPending,
@@ -179,8 +172,8 @@ export const useAvailableTools = () => {
     const allTools = getAllTools()
     const integrations = getAllIntegrations()
 
-    const availableTools = allTools.data?.filter(tool => {
-        const hasIntegration = integrations.data?.some(integration =>
+    const availableTools = allTools?.data?.filter((tool: any) => {
+        const hasIntegration = integrations?.data?.some((integration: any) =>
             integration.toolId === tool.id
         )
         return !hasIntegration
@@ -188,8 +181,8 @@ export const useAvailableTools = () => {
 
     return {
         availableTools,
-        isLoading: allTools.isLoading || integrations.isLoading,
-        error: allTools.error || integrations.error,
+        isLoading: allTools?.isLoading || integrations?.isLoading,
+        error: allTools?.error || integrations?.error,
     }
 }
 
@@ -203,17 +196,17 @@ export const useIntegratedTools = () => {
     const allTools = getAllTools()
     const integrations = getAllIntegrations()
 
-    const integratedTools = integrations.data?.map(integration => {
-        const tool = allTools.data?.find(tool => tool.id === integration.toolId)
+    const integratedTools = integrations?.data?.map((integration: any) => {
+        const tool = allTools?.data?.find((tool: any) => tool.id === integration.toolId)
         return {
             ...integration,
             tool: tool || null,
         }
-    }).filter(item => item.tool !== null) || []
+    }).filter((item: any) => item.tool !== null) || []
 
     return {
         integratedTools,
-        isLoading: allTools.isLoading || integrations.isLoading,
-        error: allTools.error || integrations.error,
+        isLoading: allTools?.isLoading || integrations?.isLoading,
+        error: allTools?.error || integrations?.error,
     }
 }

@@ -1,9 +1,9 @@
 import type { NextRequest } from "next/server";
 import { auth } from "./auth";
 
-export async function createContext(req: NextRequest) {
+export const createTRPCContext = async (opts: { headers: Headers }) => {
   const session = await auth.api.getSession({
-    headers: req.headers,
+    headers: opts.headers,
   });
   return {
     session,
@@ -11,4 +11,4 @@ export async function createContext(req: NextRequest) {
 }
 
 
-export type Context = Awaited<ReturnType<typeof createContext>>;
+export type Context = Awaited<ReturnType<typeof createTRPCContext>>;
