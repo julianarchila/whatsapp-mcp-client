@@ -96,41 +96,19 @@ const TwilioStatusCallbackSchema = TwilioBaseSchema
     SmsStatus: z.string().optional(), // Legacy status field
   });
 
-// WhatsApp-specific schemas (for backwards compatibility)
-const WhatsAppIncomingMessageSchema = TwilioIncomingMessageSchema.extend({
-  From: z.string().startsWith('whatsapp:'), // WhatsApp numbers start with 'whatsapp:'
-  To: z.string().startsWith('whatsapp:'),
-});
-
-const WhatsAppStatusCallbackSchema = TwilioStatusCallbackSchema.extend({
-  From: z.string().startsWith('whatsapp:'), // WhatsApp numbers start with 'whatsapp:'
-  To: z.string().startsWith('whatsapp:'),
-});
-
-// Union types for webhook validation
+// Union type for webhook validation
 const TwilioWebhookSchema = z.union([
   TwilioIncomingMessageSchema,
   TwilioStatusCallbackSchema,
 ]);
 
-const WhatsAppWebhookSchema = z.union([
-  WhatsAppIncomingMessageSchema,
-  WhatsAppStatusCallbackSchema,
-]);
-
-// Inferred types for general Twilio webhooks
+// Inferred types
 export type TwilioIncomingMessage = z.infer<typeof TwilioIncomingMessageSchema>;
 export type TwilioStatusCallback = z.infer<typeof TwilioStatusCallbackSchema>;
 export type TwilioWebhook = z.infer<typeof TwilioWebhookSchema>;
 
-// WhatsApp-specific types (for backwards compatibility)
-export type WhatsAppIncomingMessage = z.infer<typeof WhatsAppIncomingMessageSchema>;
-export type WhatsAppStatusCallback = z.infer<typeof WhatsAppStatusCallbackSchema>;
-export type WhatsAppWebhook = z.infer<typeof WhatsAppWebhookSchema>;
-
-// Webhook type discriminators
+// Webhook type discriminator
 export type TwilioWebhookType = 'incoming_message' | 'status_callback' | 'unknown';
-export type WhatsAppWebhookType = 'incoming_message' | 'status_callback' | 'unknown';
 
 /**
  * Determine general Twilio webhook type
@@ -159,19 +137,7 @@ const determineTwilioWebhookType = (data: any): TwilioWebhookType => {
   return 'unknown';
 };
 
-/**
- * Determine WhatsApp webhook type (backwards compatibility)
- */
-const determineWhatsAppWebhookType = (data: any): WhatsAppWebhookType => {
-  // Validate it's actually a WhatsApp webhook
-  if (!data.From?.startsWith('whatsapp:') || !data.To?.startsWith('whatsapp:')) {
-    console.warn('⚠️ Non-WhatsApp webhook received:', { From: data.From, To: data.To });
-    return 'unknown';
-  }
-  
-  // Use the general Twilio webhook type detection
-  return determineTwilioWebhookType(data);
-};
+
 
 /**
  * Validate Twilio webhook signature
@@ -228,39 +194,6 @@ export const parseTwilioWebhook = async (request: Request) => {
   
   if (!validationResult.success) {
     return err(`Invalid Twilio ${webhookType} webhook: ${validationResult.error.message}`);
-  }
-  
-  return ok({
-    type: webhookType,
-    data: validationResult.data,
-    rawData,
-  });
-};
-
-/**
- * Parse and validate WhatsApp webhook (backwards compatibility)
- */
-export const parseWhatsAppWebhook = async (request: Request) => {
-  const formData = await request.formData().catch(() => null);
-  if (!formData) {
-    return err('Failed to parse form data');
-  }
-  
-  const rawData = Object.fromEntries(formData.entries());
-  const webhookType = determineWhatsAppWebhookType(rawData);
-  
-  if (webhookType === 'unknown') {
-    return err(`Unknown or non-WhatsApp webhook. Data: ${JSON.stringify(rawData)}`);
-  }
-  
-  const schema = webhookType === 'incoming_message' 
-    ? WhatsAppIncomingMessageSchema 
-    : WhatsAppStatusCallbackSchema;
-    
-  const validationResult = schema.safeParse(rawData);
-  
-  if (!validationResult.success) {
-    return err(`Invalid WhatsApp ${webhookType} webhook: ${validationResult.error.message}`);
   }
   
   return ok({

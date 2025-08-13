@@ -1,18 +1,19 @@
 import { 
-  parseWhatsAppWebhook, 
+  parseTwilioWebhook, 
   validateTwilioSignature, 
   getWebhookUrl, 
-  createTwiMLResponse
+  createTwiMLResponse,
+  isWhatsAppWebhook
 } from '@/server/lib/twilio';
 import type { 
-  WhatsAppIncomingMessage,
-  WhatsAppStatusCallback 
+  TwilioIncomingMessage,
+  TwilioStatusCallback 
 } from '@/server/lib/twilio';
 import { chatbot } from '@/server/services/chatbot';
 import { getOrCreateWhatsAppUser } from '@/server/services/auth';
 
 export const POST = async (request: Request) => {
-  console.log('📞 WhatsApp webhook received');
+  console.log('📞 Twilio webhook received');
   
   // 1. Validate signature
   const signature = request.headers.get('x-twilio-signature');
@@ -38,42 +39,52 @@ export const POST = async (request: Request) => {
     return new Response('Unauthorized', { status: 401 });
   }
 
-  // 2. Parse and validate WhatsApp webhook
-  const webhookResult = await parseWhatsAppWebhook(request);
+  // 2. Parse and validate Twilio webhook
+  const webhookResult = await parseTwilioWebhook(request);
   if (webhookResult.isErr()) {
-    console.error('❌ WhatsApp webhook parsing failed:', webhookResult.error);
+    console.error('❌ Twilio webhook parsing failed:', webhookResult.error);
     return new Response('Bad Request', { status: 400 });
   }
 
   const { type, data, rawData } = webhookResult.value;
+  
+  // 3. Validate this is a WhatsApp webhook
+  if (!isWhatsAppWebhook(data)) {
+    console.warn('⚠️ Non-WhatsApp webhook received:', { From: data.From, To: data.To });
+    return new Response('OK', { status: 200 });
+  }
+  
   console.log(`📱 WhatsApp webhook type: ${type}`);
 
-  // 3. Handle different WhatsApp webhook types
+  // 4. Handle different webhook types
   switch (type) {
     case 'incoming_message':
-      return await handleWhatsAppMessage(data as WhatsAppIncomingMessage);
+      return await handleIncomingMessage(data as TwilioIncomingMessage);
       
     case 'status_callback':
-      return handleWhatsAppStatus(data as WhatsAppStatusCallback, rawData);
+      return handleStatusCallback(data as TwilioStatusCallback, rawData);
       
     default:
-      console.log(`🤷 Unknown WhatsApp webhook type: ${type}`);
+      console.log(`🤷 Unknown webhook type: ${type}`);
       return new Response('OK', { status: 200 });
   }
 };
 
 /**
- * Handle incoming WhatsApp messages
+ * Handle incoming messages (WhatsApp and other channels)
  */
-const handleWhatsAppMessage = async (webhook: WhatsAppIncomingMessage) => {
+const handleIncomingMessage = async (webhook: TwilioIncomingMessage) => {
   const { From, Body, MessageSid, ProfileName, WaId, NumMedia, Latitude, Longitude, Address } = webhook;
   
-  // Log incoming message with WhatsApp context
-  console.log(`📱 WhatsApp message from ${From}: "${Body}"`);
+  // Log incoming message with context
+  console.log(`📱 Message from ${From}: "${Body}"`);
+  if (ProfileName) console.log(`👤 Profile: ${ProfileName}`);
+  if (WaId) console.log(`🆔 WhatsApp ID: ${WaId}`);
   
-  // Handle special WhatsApp message types
+  // Handle special message types
   if (Latitude && Longitude) {
     console.log(`📍 Location shared: ${Latitude}, ${Longitude}${Address ? ` (${Address})` : ''}`);
+    return createTwiMLResponse("Thanks for sharing your location! I can see where you are, but I can only respond with text messages for now.");
   }
   
   if (NumMedia && parseInt(NumMedia) > 0) {
@@ -82,7 +93,7 @@ const handleWhatsAppMessage = async (webhook: WhatsAppIncomingMessage) => {
     return createTwiMLResponse("I received your media! I can only process text messages at the moment, but I'm working on supporting media soon!");
   }
   
-  // Get or create user
+  // Get or create user (works for WhatsApp and other channels)
   const userResult = await getOrCreateWhatsAppUser(From);
   if (userResult.isErr()) {
     console.error(`❌ Auth error: ${userResult.error.message}`);
@@ -99,19 +110,19 @@ const handleWhatsAppMessage = async (webhook: WhatsAppIncomingMessage) => {
     return createTwiMLResponse("I'm having trouble processing your message. Please try again.");
   }
 
-  console.log(`✅ Sending WhatsApp response`);
+  console.log(`✅ Sending response`);
   return createTwiMLResponse(chatbotResult.value);
 };
 
 /**
- * Handle WhatsApp status callbacks (just log for now)
+ * Handle status callbacks (just log for now)
  */
-const handleWhatsAppStatus = (
-  webhook: WhatsAppStatusCallback, 
+const handleStatusCallback = (
+  webhook: TwilioStatusCallback, 
   rawData: Record<string, any>
 ) => {
   const status = webhook.MessageStatus || webhook.SmsStatus || 'unknown';
-  console.log(`📊 WhatsApp status: ${webhook.MessageSid} -> ${status}`);
+  console.log(`📊 Message status: ${webhook.MessageSid} -> ${status}`);
   console.log('📋 Status details:', {
     messageId: webhook.MessageSid,
     status,
