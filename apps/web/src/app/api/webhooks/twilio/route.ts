@@ -1,94 +1,78 @@
-import twilio from 'twilio';
-import { validateTwilioWebhook, getActualUrl } from '@/lib/twilio';
-import { chatbot, type ChatbotError } from '@/server/services/chatbot';
-import { getOrCreateWhatsAppUser, AuthError } from '@/server/services/auth';
+import { validateTwilioWebhook, parseTwilioWebhook, createTwiMLResponse, createErrorTwiMLResponse } from '@/server/lib/twilio';
+import { chatbot } from '@/server/services/chatbot';
+import { getOrCreateWhatsAppUser } from '@/server/services/auth';
 import { env } from '@env';
 
 export async function POST(request: Request) {
+  console.log('📞 Twilio webhook received');
+  
   try {
-    // Validate Twilio signature if auth token is configured
-    const authToken = env.TWILIO_AUTH_TOKEN;
+    // Validate Twilio signature if configured
     const signature = request.headers.get('x-twilio-signature');
-
-    if (authToken && signature) {
-      const actualUrl = getActualUrl(request);
-      const clonedRequest = request.clone();
-
-      const isValid = await validateTwilioWebhook(clonedRequest, authToken, signature, actualUrl);
-      if (!isValid) {
-        console.error('Invalid Twilio signature');
+    if (signature) {
+      const validationResult = await validateTwilioWebhook(request, signature);
+      if (validationResult.isErr()) {
+        console.error(`❌ Signature validation failed: ${validationResult.error.message}`);
+        return new Response('Unauthorized', { status: 401 });
+      }
+      
+      if (!validationResult.value) {
+        console.error('❌ Invalid Twilio signature');
         return new Response('Unauthorized', { status: 401 });
       }
     }
 
-    // Process the webhook
+    // Parse webhook data
     const formData = await request.formData();
-    const body = Object.fromEntries(formData.entries());
-
-    console.log('Twilio webhook received:', body);
-
-    // Handle incoming WhatsApp messages
-    if (body.From && body.Body) {
-      const from = body.From as string;
-      const message = body.Body as string;
-
-      console.log(`Message from ${from}: ${message}`);
-
-      // Get or create user from WhatsApp phone number
-      const userResult = await getOrCreateWhatsAppUser(from);
-      if (userResult.isErr()) {
-        const error = userResult.error;
-        console.error(`❌ Auth Error [${error.type}]: ${error.message}`);
-        if (error.cause) {
-          console.error('  Cause:', error.cause);
-        }
-        // Return error response to user
-        const twiml = new twilio.twiml.MessagingResponse();
-        twiml.message("Sorry, I'm having trouble processing your message right now. Please try again later.");
-        return new Response(twiml.toString(), {
-          status: 200,
-          headers: { 'Content-Type': 'text/xml' },
-        });
-      }
-
-      const user = userResult.value;
-      console.log(`📱 Processing message for user: ${user.id} (${user.name})`);
-
-      // Process message with full chat history and persistence
-      const chatbotResult = await chatbot(user.id, message);
-      if (chatbotResult.isErr()) {
-        const error = chatbotResult.error;
-        console.error(`❌ Chatbot Error [${error.type}]: ${error.message}`);
-        if (error.cause) {
-          console.error('  Cause:', error.cause);
-        }
-        // Return error response to user
-        const twiml = new twilio.twiml.MessagingResponse();
-        twiml.message("I'm having trouble processing your message right now. Please try again in a moment.");
-        return new Response(twiml.toString(), {
-          status: 200,
-          headers: { 'Content-Type': 'text/xml' },
-        });
-      }
-
-      const response = chatbotResult.value;
-
-      const twiml = new twilio.twiml.MessagingResponse();
-      twiml.message(response);
-
-      return new Response(twiml.toString(), {
-        status: 200,
-        headers: {
-          'Content-Type': 'text/xml',
-        },
-      });
+    const webhookResult = parseTwilioWebhook(formData);
+    if (webhookResult.isErr()) {
+      console.error(`❌ Webhook parsing failed: ${webhookResult.error.message}`);
+      return createErrorTwiMLResponse('Invalid message format');
     }
 
-    return new Response('', { status: 200 });
+    const webhookData = webhookResult.value;
+    console.log(`📱 Message from ${webhookData.From}: ${webhookData.Body}`);
+
+    // Get or create user from WhatsApp phone number
+    const userResult = await getOrCreateWhatsAppUser(webhookData.From);
+    if (userResult.isErr()) {
+      const error = userResult.error;
+      console.error(`❌ Auth Error [${error.type}]: ${error.message}`);
+      if (error.cause) {
+        console.error('  Cause:', error.cause);
+      }
+      return createErrorTwiMLResponse("Sorry, I'm having trouble processing your message right now. Please try again later.");
+    }
+
+    const user = userResult.value;
+    console.log(`👤 Processing message for user: ${user.id} (${user.name})`);
+
+    // Process message with chatbot
+    const chatbotResult = await chatbot(user.id, webhookData.Body);
+    if (chatbotResult.isErr()) {
+      const error = chatbotResult.error;
+      console.error(`❌ Chatbot Error [${error.type}]: ${error.message}`);
+      if (error.cause) {
+        console.error('  Cause:', error.cause);
+      }
+      return createErrorTwiMLResponse("I'm having trouble processing your message right now. Please try again in a moment.");
+    }
+
+    const response = chatbotResult.value;
+
+    // Create TwiML response
+    const twimlResult = createTwiMLResponse(response);
+    if (twimlResult.isErr()) {
+      console.error(`❌ TwiML creation failed: ${twimlResult.error.message}`);
+      return createErrorTwiMLResponse();
+    }
+
+    console.log(`✅ Response sent successfully`);
+    return twimlResult.value;
 
   } catch (error) {
-    console.error('Error processing Twilio webhook:', error);
-    return new Response('Error processing webhook', { status: 500 });
+    console.error('❌ Unexpected error processing Twilio webhook:', error);
+    return createErrorTwiMLResponse();
   }
 }
 
