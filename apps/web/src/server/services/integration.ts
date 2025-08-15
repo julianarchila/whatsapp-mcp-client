@@ -1,54 +1,54 @@
 import { db } from "../db";
 import { integration } from "../db/schema/integration";
-import { eq, and } from "drizzle-orm";
+import { eq, and, ne } from "drizzle-orm";
 import { nanoid as generateId } from "nanoid";
 import crypto from "crypto";
 import { env } from "@env";
+import { TRPCError } from "@trpc/server";
 
-const algorithm = "aes-256-cbc";
-const secretKey = env.ENCRYPTION_KEY;
+const algorithm = "aes-256-gcm";
+const IV_LENGTH = 12; // recommended for GCM
+const rawKey = env.ENCRYPTION_KEY;
 
-function encrypt(text: string): { iv: string, encryptedData: string } {
-    if (!secretKey) {
-        throw new Error("ENCRYPTION_KEY environment variable is not set");
-    }
-    
-    // Validate key length for AES-256-CBC (32 bytes)
-    const keyBuffer = Buffer.from(secretKey, 'hex');
-    if (keyBuffer.length !== 32) {
-        throw new Error(`Invalid encryption key length. Expected 32 bytes (64 hex characters), got ${keyBuffer.length} bytes`);
-    }
-    
-    const iv = crypto.randomBytes(16);
-    const cipher = crypto.createCipheriv(algorithm, keyBuffer, iv);
-    let encrypted = cipher.update(text);
-    encrypted = Buffer.concat([encrypted, cipher.final()]);
-    return { iv: iv.toString('hex'), encryptedData: encrypted.toString('hex') };
+if (!rawKey) throw new Error("ENCRYPTION_KEY is required");
+// Derive a 32-byte key from the provided secret (compatible with any length input)
+const key = crypto.createHash("sha256").update(rawKey, "utf8").digest();
+
+const keyBuffer = /^[0-9A-Fa-f]{64}$/.test(rawKey)
+    ? Buffer.from(rawKey, "hex")
+    : Buffer.from(rawKey, "base64");
+
+function encrypt(plaintext: string): { iv: string; ciphertext: string; tag: string } {
+    const iv = crypto.randomBytes(IV_LENGTH);
+    const cipher = crypto.createCipheriv(algorithm, key, iv);
+    const encrypted = Buffer.concat([cipher.update(plaintext, "utf8"), cipher.final()]);
+    const tag = cipher.getAuthTag();
+    return {
+        iv: iv.toString("hex"),
+        ciphertext: encrypted.toString("hex"),
+        tag: tag.toString("hex"),
+    };
 }
 
-function decrypt(encryptedData: string, ivHex: string): string {
-    if (!secretKey) {
-        throw new Error("ENCRYPTION_KEY environment variable is not set");
-    }
-    
-    // Validate key length for AES-256-CBC (32 bytes)
-    const keyBuffer = Buffer.from(secretKey, 'hex');
-    if (keyBuffer.length !== 32) {
-        throw new Error(`Invalid encryption key length. Expected 32 bytes (64 hex characters), got ${keyBuffer.length} bytes`);
-    }
-    
-    const iv = Buffer.from(ivHex, 'hex');
-    const decipher = crypto.createDecipheriv(algorithm, keyBuffer, iv);
-    let decrypted = decipher.update(Buffer.from(encryptedData, 'hex'));
-    decrypted = Buffer.concat([decrypted, decipher.final()]);
-    return decrypted.toString();
+function decrypt(ciphertextHex: string, ivHex: string, tagHex: string): string {
+    const iv = Buffer.from(ivHex, "hex");
+    const tag = Buffer.from(tagHex, "hex");
+    const decipher = crypto.createDecipheriv(algorithm, key, iv);
+    decipher.setAuthTag(tag);
+    const decrypted = Buffer.concat([decipher.update(Buffer.from(ciphertextHex, "hex")), decipher.final()]);
+    return decrypted.toString("utf8");
 }
 
 export async function getAllIntegrations(userId: string) {
-    const integrations = await db.select().from(integration).where(eq(integration.userId, userId));
-    return integrations.map(i => ({
-        ...i,
-        apiKey: decrypt(i.apiKey, i.iv)
+    const integrations = await db
+        .select()
+        .from(integration)
+        .where(eq(integration.userId, userId))
+        // ✅ Agregar ordenamiento consistente para evitar reorganización
+        .orderBy(integration.createdAt);
+
+    return integrations.map(({ apiKey, iv, tag, ...rest }) => ({
+        ...rest,
     }));
 }
 
@@ -60,41 +60,107 @@ export async function getIntegrationById(userId: string, id: string) {
 
     if (!result[0]) return null;
 
+    const { apiKey, iv, tag, ...rest } = result[0];
     return {
-        ...result[0],
-        apiKey: decrypt(result[0].apiKey, result[0].iv)
+        ...rest,
     };
 }
 
-export async function getIntegrationByToolId(userId: string, toolId: string) {
+export async function getIntegrationByName(userId: string, name: string) {
     const result = await db
         .select()
         .from(integration)
-        .where(and(eq(integration.toolId, toolId), eq(integration.userId, userId)));
+        .where(and(eq(integration.name, name), eq(integration.userId, userId)));
 
     if (!result[0]) return null;
 
+    const { apiKey, iv, tag, ...safeIntegration } = result[0];
     return {
-        ...result[0],
-        apiKey: decrypt(result[0].apiKey, result[0].iv)
+        ...safeIntegration,
     };
 }
 
-export async function createIntegration(userId: string, toolId: string, apiKey: string, isEnabled: boolean) {
-    const { iv, encryptedData } = encrypt(apiKey);
-    return await db.insert(integration).values({
+export async function createIntegration(
+    userId: string,
+    name: string,
+    apiUrl: string,
+    apiKey?: string,
+    isEnabled: boolean = true
+) {
+    // ✅ VALIDACIÓN PREVIA: Verificar si ya existe una integración con ese nombre
+    const existingIntegration = await db
+        .select()
+        .from(integration)
+        .where(and(eq(integration.name, name), eq(integration.userId, userId)))
+        .limit(1);
+
+    if (existingIntegration.length > 0) {
+        throw new TRPCError({
+            code: "CONFLICT",
+            message: `An integration with the name "${name}" already exists`
+        });
+    }
+
+    const integrationData: any = {
         id: generateId(),
         userId: userId,
-        toolId: toolId,
-        apiKey: encryptedData,
-        iv: iv,
+        name: name,
+        apiUrl: apiUrl,
         isEnabled: isEnabled,
         createdAt: new Date(),
         updatedAt: new Date(),
-    });
+    };
+
+    if (apiKey) {
+        // ✅ CORRECCIÓN: Usar las propiedades correctas
+        const { iv, ciphertext, tag } = encrypt(apiKey);
+        integrationData.apiKey = ciphertext; // ← ciphertext, no encryptedData
+        integrationData.iv = iv;
+        integrationData.tag = tag; // ← También necesitas guardar el tag
+    }
+
+    try {
+        const [created] = await db
+            .insert(integration)
+            .values(integrationData)
+            .returning({
+                id: integration.id,
+                userId: integration.userId,
+                name: integration.name,
+                apiUrl: integration.apiUrl,
+                isEnabled: integration.isEnabled,
+                createdAt: integration.createdAt,
+                updatedAt: integration.updatedAt,
+            });
+
+        return created;
+    } catch (error: any) {
+        // ✅ MANEJO DE ERRORES DE CONSTRAINT
+        if (error.code === '23505' || error.message?.includes('unique constraint')) {
+            throw new TRPCError({
+                code: "CONFLICT",
+                message: `An integration with the name "${name}" already exists`
+            });
+        }
+
+        // Re-throw otros errores
+        throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to create integration. Please try again."
+        });
+    }
 }
 
-export async function updateIntegration(userId: string, id: string, updateData: { apiKey?: string, isEnabled?: boolean }) {
+export async function updateIntegration(
+    userId: string,
+    id: string,
+    updateData: {
+        name?: string,
+        apiUrl?: string,
+        apiKey?: string,
+        isEnabled?: boolean
+    }
+) {
     const existingIntegration = await db.select().from(integration).where(
         and(
             eq(integration.id, id),
@@ -103,26 +169,82 @@ export async function updateIntegration(userId: string, id: string, updateData: 
     );
 
     if (!existingIntegration[0]) {
-        throw new Error("Integration not found or unauthorized");
+        throw new TRPCError({ code: "NOT_FOUND", message: "Integration not found" });
     }
 
-    const dataToUpdate: { apiKey?: string, isEnabled?: boolean, updatedAt: Date, iv?: string } = {
+    // ✅ VALIDACIÓN: Si se está cambiando el nombre, verificar que no exista otro con ese nombre
+    if (updateData.name && updateData.name !== existingIntegration[0].name) {
+        const nameConflict = await db
+            .select()
+            .from(integration)
+            .where(and(
+                eq(integration.name, updateData.name),
+                eq(integration.userId, userId),
+                // Excluir el registro actual
+                ne(integration.id, id)
+            ))
+            .limit(1);
+
+        if (nameConflict.length > 0) {
+            throw new TRPCError({
+                code: "CONFLICT",
+                message: `An integration with the name "${updateData.name}" already exists`
+            });
+        }
+    }
+
+    const dataToUpdate: any = {
         updatedAt: new Date(),
     };
 
+    if (updateData.name !== undefined) {
+        dataToUpdate.name = updateData.name;
+    }
+    if (updateData.apiUrl !== undefined) {
+        dataToUpdate.apiUrl = updateData.apiUrl;
+    }
     if (updateData.apiKey) {
-        const { iv, encryptedData } = encrypt(updateData.apiKey);
-        dataToUpdate.apiKey = encryptedData;
+        // ✅ CORRECCIÓN: Usar las propiedades correctas
+        const { iv, ciphertext, tag } = encrypt(updateData.apiKey);
+        dataToUpdate.apiKey = ciphertext; // ← ciphertext, no encryptedData
         dataToUpdate.iv = iv;
+        dataToUpdate.tag = tag; // ← También necesitas guardar el tag
     }
     if (updateData.isEnabled !== undefined) {
         dataToUpdate.isEnabled = updateData.isEnabled;
     }
 
-    return await db
-        .update(integration)
-        .set(dataToUpdate)
-        .where(eq(integration.id, id));
+    try {
+        const [updated] = await db
+            .update(integration)
+            .set(dataToUpdate)
+            .where(eq(integration.id, id))
+            .returning({
+                id: integration.id,
+                userId: integration.userId,
+                name: integration.name,
+                apiUrl: integration.apiUrl,
+                isEnabled: integration.isEnabled,
+                createdAt: integration.createdAt,
+                updatedAt: integration.updatedAt,
+            });
+
+        return updated;
+    } catch (error: any) {
+        // ✅ MANEJO DE ERRORES DE CONSTRAINT
+        if (error.code === '23505' || error.message?.includes('unique constraint')) {
+            throw new TRPCError({
+                code: "CONFLICT",
+                message: `An integration with the name "${updateData.name}" already exists`
+            });
+        }
+
+        // Re-throw otros errores
+        throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to update integration. Please try again."
+        });
+    }
 }
 
 export async function toggleIntegrationEnabled(userId: string, id: string, isEnabled: boolean) {
@@ -134,16 +256,27 @@ export async function toggleIntegrationEnabled(userId: string, id: string, isEna
     );
 
     if (!existingIntegration[0]) {
-        throw new Error("Integration not found or unauthorized");
+        throw new TRPCError({ code: "NOT_FOUND", message: "Integration not found" });
     }
 
-    return await db
+    const [updated] = await db
         .update(integration)
         .set({
             isEnabled: isEnabled,
             updatedAt: new Date(),
         })
-        .where(eq(integration.id, id));
+        .where(eq(integration.id, id))
+        .returning({
+            id: integration.id,
+            userId: integration.userId,
+            name: integration.name,
+            apiUrl: integration.apiUrl,
+            isEnabled: integration.isEnabled,
+            createdAt: integration.createdAt,
+            updatedAt: integration.updatedAt,
+        });
+
+    return updated;
 }
 
 export async function deleteIntegration(userId: string, id: string) {
@@ -155,8 +288,34 @@ export async function deleteIntegration(userId: string, id: string) {
     );
 
     if (!existingIntegration[0]) {
-        throw new Error("Integration not found or unauthorized");
+        throw new TRPCError({ code: "NOT_FOUND", message: "Integration not found or unauthorized" });
     }
 
     return await db.delete(integration).where(eq(integration.id, id));
+}
+
+// ✅ BONUS: Función helper para desencriptar cuando sea necesario
+export async function getIntegrationWithDecryptedApiKey(userId: string, id: string) {
+    const result = await db
+        .select()
+        .from(integration)
+        .where(and(eq(integration.id, id), eq(integration.userId, userId)));
+
+    if (!result[0]) return null;
+
+    const { apiKey, iv, tag, ...rest } = result[0];
+
+    let decryptedApiKey: string | null = null;
+    if (apiKey && iv && tag) {
+        try {
+            decryptedApiKey = decrypt(apiKey, iv, tag);
+        } catch (error) {
+            console.error('Failed to decrypt API key:', error);
+        }
+    }
+
+    return {
+        ...rest,
+        apiKey: decryptedApiKey,
+    };
 }

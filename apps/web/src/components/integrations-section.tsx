@@ -1,22 +1,42 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { Search, Filter, Loader2Icon } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { IntegrationCard } from "./integration-card"
+import { IntegrationCard, type Integration } from "./integration-card"
 import { DiscoverToolsModal } from "./discover-tools-modal"
 import { CustomIntegrationPopover } from "./custom-integration-popover"
-import { useIntegratedTools, useIntegrations } from "@/hooks/use-tools"
+import { useIntegrations } from "@/hooks/use-integrations"
 import { AlertCircle } from "lucide-react"
 
 export function IntegrationsSection() {
-  const { integratedTools, isLoading, error } = useIntegratedTools()
-  const { toggleIntegration } = useIntegrations()
+  const { toggleIntegration, getAllIntegrations } = useIntegrations()
+  const { data: integratedTools, isLoading, error } = getAllIntegrations.useQuery()
 
   const [searchTerm, setSearchTerm] = useState("")
   const [showActiveOnly, setShowActiveOnly] = useState(false)
   const [showDiscoverModal, setShowDiscoverModal] = useState(false)
+
+  const stableIntegrations = useMemo(() => {
+    if (!integratedTools) return []
+
+    return [...integratedTools].sort((a, b) => {
+      if (a.id && b.id) {
+        return a.id.localeCompare(b.id)
+      }
+      return (a.name || '').localeCompare(b.name || '')
+    })
+  }, [integratedTools])
+
+  const filteredIntegrations = useMemo(() => {
+    return stableIntegrations?.filter((integration: Integration) => {
+      const name = integration.name || ""
+      const matchesSearch = name.toLowerCase().includes(searchTerm.toLowerCase())
+      const matchesFilter = !showActiveOnly || integration.isEnabled
+      return matchesSearch && matchesFilter
+    })
+  }, [stableIntegrations, searchTerm, showActiveOnly])
 
   if (isLoading) {
     return (
@@ -38,17 +58,7 @@ export function IntegrationsSection() {
     )
   }
 
-  const filteredIntegrations = integratedTools.filter((integration) => {
-    const name = integration.tool?.name || ""
-    const description = integration.tool?.description || ""
-    const matchesSearch =
-      name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      description.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesFilter = !showActiveOnly || integration.isEnabled
-    return matchesSearch && matchesFilter
-  })
-
-  const activeCount = integratedTools.filter((i) => i.isEnabled).length
+  const activeCount = stableIntegrations?.filter((i: Integration) => i.isEnabled).length
 
   return (
     <div className="bg-background">
@@ -94,16 +104,15 @@ export function IntegrationsSection() {
         </div>
 
         {/* Grid */}
-        {filteredIntegrations.length > 0 ? (
+        {(filteredIntegrations?.length ?? 0) > 0 ? (
           <div className="grid grid-cols-1 gap-6">
-            {filteredIntegrations.map((integration) => (
+            {filteredIntegrations?.map((integration: Integration) => (
               <IntegrationCard
-                key={integration.id}
+                key={`integration-${integration.id}`} // ✅ Key más específica para estabilidad
                 integration={{
                   id: integration.id,
-                  name: integration.tool!.name,
-                  description: integration.tool!.description,
-                  isActive: integration.isEnabled,
+                  name: integration.name,
+                  isEnabled: integration.isEnabled,
                 }}
                 onToggle={(id) =>
                   toggleIntegration.mutate({

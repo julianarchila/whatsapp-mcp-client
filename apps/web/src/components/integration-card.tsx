@@ -8,8 +8,8 @@ import { ToolIcon } from '@/components/ui/tool-icon'
 export interface Integration {
   id: string
   name: string
-  description?: string | null
-  isActive: boolean
+  description?: string
+  isEnabled: boolean
 }
 
 interface IntegrationCardProps {
@@ -53,7 +53,7 @@ export function IntegrationCard({
               Configure
             </Button>
             <Switch
-              checked={integration.isActive}
+              checked={integration.isEnabled}
               onCheckedChange={() => onToggle(integration.id)}
               isLoading={isLoading}
               disabled={isLoading}

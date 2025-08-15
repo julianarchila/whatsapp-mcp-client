@@ -1,9 +1,9 @@
-import z from "zod";
+import { z } from "zod";
 import { router, protectedProcedure } from "../lib/trpc";
 import {
     getAllIntegrations,
     getIntegrationById,
-    getIntegrationByToolId,
+    getIntegrationByName,
     createIntegration,
     updateIntegration,
     toggleIntegrationEnabled,
@@ -23,24 +23,26 @@ export const integrationRouter = router({
             return await getIntegrationById(ctx.session.user.id, input.id);
         }),
 
-    // Get integration by tool ID
-    getByToolId: protectedProcedure
-        .input(z.object({ toolId: z.string() }))
+    // Get integration by name
+    getByName: protectedProcedure
+        .input(z.object({ name: z.string() }))
         .query(async ({ input, ctx }) => {
-            return await getIntegrationByToolId(ctx.session.user.id, input.toolId);
+            return await getIntegrationByName(ctx.session.user.id, input.name);
         }),
 
     // Create new integration
     create: protectedProcedure
         .input(z.object({
-            toolId: z.string(),
-            apiKey: z.string().min(1, "API key is required"),
+            name: z.string().min(1, "Integration name is required"),
+            apiUrl: z.string().url("Valid API URL is required"),
+            apiKey: z.string().optional(),
             isEnabled: z.boolean().default(true),
         }))
         .mutation(async ({ input, ctx }) => {
             return await createIntegration(
                 ctx.session.user.id,
-                input.toolId,
+                input.name,
+                input.apiUrl,
                 input.apiKey,
                 input.isEnabled
             );
@@ -50,6 +52,8 @@ export const integrationRouter = router({
     update: protectedProcedure
         .input(z.object({
             id: z.string(),
+            name: z.string().optional(),
+            apiUrl: z.string().url().optional(),
             apiKey: z.string().optional(),
             isEnabled: z.boolean().optional(),
         }))

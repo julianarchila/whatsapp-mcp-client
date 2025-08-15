@@ -4,10 +4,12 @@ This document outlines the essential commands and code style guidelines for agen
 
 ## Build, Lint, and Test Commands
 
-- **Build All Projects:** `turbo build`
-- **Type Check All Projects:** `turbo check-types`
+- **Build All Projects:** `turbo run build`
+- **Type Check All Projects:** `turbo run check-types`
 - **Lint Web Application:** `pnpm --filter web lint` (or `next lint` within `apps/web`)
-- **Run Single Test:** No explicit script found. Refer to project-specific test runner documentation (e.g., Jest, React Testing Library) if applicable.
+**Run Single Test:** Use one of the following commands:
+- **All workspaces:** `npm test` (runs `pnpm -r run test` across all packages)
+- **Web app only:** `cd apps/web && npm test`
 
 ## Code Style Guidelines
 
