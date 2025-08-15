@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { Search, Filter, Loader2Icon } from "lucide-react"
+import { Search, Filter, Loader2 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { IntegrationCard, type Integration } from "./integration-card"
@@ -41,7 +41,7 @@ export function IntegrationsSection() {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <Loader2Icon className="w-10 h-10 text-primary" />
+        <Loader2 className="w-10 h-10 text-primary animate-spin" />
         <p className="ml-3 text-lg text-muted-foreground">Loading integrations...</p>
       </div>
     )
@@ -120,7 +120,6 @@ export function IntegrationsSection() {
                     isEnabled: !integration.isEnabled
                   })
                 }
-                onConfigure={(id) => { }}
                 isLoading={
                   toggleIntegration.isPending &&
                   toggleIntegration.variables?.id === integration.id
