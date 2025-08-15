@@ -3,7 +3,6 @@ import {
   router,
 } from "../lib/trpc";
 
-import { toolRouter } from "./tool";
 import { integrationRouter } from "./integration";
 
 export const appRouter = router({
@@ -16,7 +15,6 @@ export const appRouter = router({
       user: ctx.session.user,
     };
   }),
-  tool: toolRouter,
   integration: integrationRouter,
 });
 export type AppRouter = typeof appRouter;

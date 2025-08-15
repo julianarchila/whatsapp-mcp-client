@@ -8,14 +8,13 @@ import { Label } from "@/components/ui/label"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Plus, AlertCircle } from 'lucide-react'
 import { toast } from "sonner"
-import z from "zod"
-import { useTools, useIntegrations } from "@/hooks/use-tools"
-import { ok, err, ResultAsync } from "neverthrow"
+import { z } from "zod"
+import { useIntegrations } from "@/hooks/use-integrations"
+import { ResultAsync } from "neverthrow"
 
 export function CustomIntegrationPopover() {
     const [open, setOpen] = useState(false)
 
-    const { createTool, isCreating: isCreatingTool } = useTools()
     const { createIntegration, isCreating: isCreatingIntegration } = useIntegrations()
 
     const form = useForm({
@@ -26,30 +25,16 @@ export function CustomIntegrationPopover() {
         },
         onSubmit: async ({ value }) => {
             const result = await ResultAsync.fromPromise(
-                createTool.mutateAsync({
+                createIntegration.mutateAsync({
                     name: value.name,
                     apiUrl: value.url,
-                    description: "",
+                    apiKey: value.apiKey
                 }),
                 (e) => e as Error
             )
-                .andThen((tool) => {
-                    if (!tool?.id) {
-                        return err(new Error("Tool creation failed"))
-                    }
-                    return ResultAsync.fromPromise(
-                        createIntegration.mutateAsync({
-                            toolId: tool.id,
-                            apiKey: value.apiKey,
-                            isEnabled: true,
-                        }),
-                        (e) => e as Error
-                    )
-                })
 
             result.match(
                 () => {
-                    toast.success("Integration created successfully!")
                     form.reset()
                     setOpen(false)
                 },
@@ -80,7 +65,7 @@ export function CustomIntegrationPopover() {
         }
     }
 
-    const isSubmitting = isCreatingTool || isCreatingIntegration
+    const isSubmitting = isCreatingIntegration
 
     return (
         <Popover open={open} onOpenChange={handleOpenChange}>
@@ -178,6 +163,9 @@ export function CustomIntegrationPopover() {
                                         name={field.name}
                                         type="password"
                                         placeholder="sk-..."
+                                        autoComplete="off"
+                                        inputMode="text"
+                                        spellCheck={false}
                                         value={field.state.value}
                                         onBlur={field.handleBlur}
                                         onChange={(e) => field.handleChange(e.target.value)}

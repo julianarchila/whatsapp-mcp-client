@@ -1,35 +1,45 @@
-import 'server-only'; // <-- ensure this file cannot be imported from the client
-import { createTRPCOptionsProxy, type TRPCQueryOptions } from '@trpc/tanstack-react-query';
+import 'server-only';
+import { createTRPCReact } from '@trpc/react-query';
+import { createTRPCProxyClient, httpBatchLink } from '@trpc/client';
 import { cache } from 'react';
 import { headers } from 'next/headers';
-import { createTRPCContext } from '@/server/lib/context';
 import { makeQueryClient } from './query-client';
-import { appRouter } from '@/server/routers';
+import { type AppRouter } from '@/server/routers';
 import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
-// IMPORTANT: Create a stable getter for the query client that
-//            will return the same client during the same request.
+
+// Create a stable getter for the query client
 export const getQueryClient = cache(makeQueryClient);
 
+function getBaseUrl() {
+  if (typeof window !== "undefined") return window.location.origin;
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+  return `http://localhost:${process.env.PORT ?? 3001}`;
+}
+
 /**
- * This wraps the `createTRPCContext` helper and provides the required context for the tRPC API when
- * handling a tRPC call from a React Server Component.
+ * Server-side tRPC client for RSC
  */
-const createContext = cache(async () => {
-  const heads = new Headers(await headers());
-  heads.set("x-trpc-source", "rsc");
-
-  return createTRPCContext({
-    headers: heads,
-  });
+export const trpcServer = createTRPCProxyClient<AppRouter>({
+  links: [
+    httpBatchLink({
+      url: `${getBaseUrl()}/api/trpc`,
+      headers: async () => {
+        const heads = new Headers(await headers());
+        heads.set("x-trpc-source", "rsc");
+        return Object.fromEntries(heads.entries());
+      },
+    }),
+  ],
 });
 
-export const trpc = createTRPCOptionsProxy({
-  ctx: createContext,
-  router: appRouter,
-  queryClient: getQueryClient,
-});
+/**
+ * Client-side tRPC React hooks
+ */
+export const trpc = createTRPCReact<AppRouter>();
 
-
+/**
+ * Hydration boundary for SSR
+ */
 export function HydrateClient(props: { children: React.ReactNode }) {
   const queryClient = getQueryClient();
   return (
@@ -38,13 +48,19 @@ export function HydrateClient(props: { children: React.ReactNode }) {
     </HydrationBoundary>
   );
 }
-export function prefetch<T extends ReturnType<TRPCQueryOptions<any>>>(
-  queryOptions: T,
+
+/**
+ * Helper function to prefetch data on server
+ * Usage: await prefetchData('posts.getAll', { limit: 10 })
+ */
+export async function prefetchData(
+  queryKey: string[],
+  queryFn: () => Promise<any>
 ) {
   const queryClient = getQueryClient();
-  if (queryOptions.queryKey[1]?.type === 'infinite') {
-    void queryClient.prefetchInfiniteQuery(queryOptions as any);
-  } else {
-    void queryClient.prefetchQuery(queryOptions);
-  }
+
+  await queryClient.prefetchQuery({
+    queryKey,
+    queryFn,
+  });
 }
