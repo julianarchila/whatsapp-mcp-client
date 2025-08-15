@@ -44,7 +44,6 @@ export async function getAllIntegrations(userId: string) {
         .select()
         .from(integration)
         .where(eq(integration.userId, userId))
-        // ✅ Agregar ordenamiento consistente para evitar reorganización
         .orderBy(integration.createdAt);
 
     return integrations.map(({ apiKey, iv, tag, ...rest }) => ({
@@ -87,7 +86,6 @@ export async function createIntegration(
     apiKey?: string,
     isEnabled: boolean = true
 ) {
-    // ✅ VALIDACIÓN PREVIA: Verificar si ya existe una integración con ese nombre
     const existingIntegration = await db
         .select()
         .from(integration)
@@ -112,11 +110,10 @@ export async function createIntegration(
     };
 
     if (apiKey) {
-        // ✅ CORRECCIÓN: Usar las propiedades correctas
         const { iv, ciphertext, tag } = encrypt(apiKey);
         integrationData.apiKey = ciphertext; // ← ciphertext, no encryptedData
         integrationData.iv = iv;
-        integrationData.tag = tag; // ← También necesitas guardar el tag
+        integrationData.tag = tag;
     }
 
     try {
@@ -135,7 +132,6 @@ export async function createIntegration(
 
         return created;
     } catch (error: any) {
-        // ✅ MANEJO DE ERRORES DE CONSTRAINT
         if (error.code === '23505' || error.message?.includes('unique constraint')) {
             throw new TRPCError({
                 code: "CONFLICT",
@@ -172,7 +168,6 @@ export async function updateIntegration(
         throw new TRPCError({ code: "NOT_FOUND", message: "Integration not found" });
     }
 
-    // ✅ VALIDACIÓN: Si se está cambiando el nombre, verificar que no exista otro con ese nombre
     if (updateData.name && updateData.name !== existingIntegration[0].name) {
         const nameConflict = await db
             .select()
@@ -180,7 +175,6 @@ export async function updateIntegration(
             .where(and(
                 eq(integration.name, updateData.name),
                 eq(integration.userId, userId),
-                // Excluir el registro actual
                 ne(integration.id, id)
             ))
             .limit(1);
@@ -294,7 +288,6 @@ export async function deleteIntegration(userId: string, id: string) {
     return await db.delete(integration).where(eq(integration.id, id));
 }
 
-// ✅ BONUS: Función helper para desencriptar cuando sea necesario
 export async function getIntegrationWithDecryptedApiKey(userId: string, id: string) {
     const result = await db
         .select()

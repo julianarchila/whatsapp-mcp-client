@@ -11,7 +11,12 @@ export const getQueryClient = cache(makeQueryClient);
 
 function getBaseUrl() {
   if (typeof window !== "undefined") return window.location.origin;
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+  if (process.env.VERCEL_URL) {
+    const url = process.env.VERCEL_URL;
+    if (/^[a-zA-Z0-9.-]+\.vercel\.app$/.test(url)) {
+      return `https://${url}`;
+    }
+  };
   return `http://localhost:${process.env.PORT ?? 3001}`;
 }
 
@@ -45,15 +50,15 @@ export function HydrateClient(props: { children: React.ReactNode }) {
 
 /**
  * Helper function to prefetch data on server
- * Usage: await prefetchData('posts.getAll', { limit: 10 })
+ * Usage: await prefetchData(['posts', 'getAll'], () => fetchPosts({ limit: 10 }))
  */
-export async function prefetchData(
+export async function prefetchData<TData = unknown>(
   queryKey: string[],
-  queryFn: () => Promise<any>
+  queryFn: () => Promise<TData>
 ) {
   const queryClient = getQueryClient();
 
-  await queryClient.prefetchQuery({
+  await queryClient.prefetchQuery<TData>({
     queryKey,
     queryFn,
   });
