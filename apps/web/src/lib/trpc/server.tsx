@@ -1,5 +1,4 @@
 import 'server-only';
-import { createTRPCReact } from '@trpc/react-query';
 import { createTRPCProxyClient, httpBatchLink } from '@trpc/client';
 import { cache } from 'react';
 import { headers } from 'next/headers';
@@ -31,11 +30,6 @@ export const trpcServer = createTRPCProxyClient<AppRouter>({
     }),
   ],
 });
-
-/**
- * Client-side tRPC React hooks
- */
-export const trpc = createTRPCReact<AppRouter>();
 
 /**
  * Hydration boundary for SSR
