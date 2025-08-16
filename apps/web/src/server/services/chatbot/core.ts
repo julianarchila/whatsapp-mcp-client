@@ -31,7 +31,7 @@ export const runChatbot = async (userId: string, incoming: DomainMessage) => {
   const outboundSave = await saveMessage({ role: 'assistant', content: responseText.value.text}, conversationId);
   void outboundSave;
 
-  return ok(responseText);
+  return ok(responseText.value.text);
 };
 
 
