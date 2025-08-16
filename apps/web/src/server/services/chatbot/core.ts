@@ -26,8 +26,9 @@ export const runChatbot = async (userId: string, incoming: DomainMessage) => {
   if (inboundSave.isErr()) return err(inboundSave.error);
 
   const responseText = await generateAIText(history, userContent);
+  if (responseText.isErr()) return err(responseText.error);
 
-  const outboundSave = await saveMessage({ role: 'assistant', content: responseText }, conversationId);
+  const outboundSave = await saveMessage({ role: 'assistant', content: responseText.value.text}, conversationId);
   void outboundSave;
 
   return ok(responseText);

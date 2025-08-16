@@ -33,7 +33,7 @@ export interface DomainMessage {
   text?: string;
   media?: MediaAttachment[];
   location?: LocationAttachment;
-  raw?: unknown;
+  raw: unknown;
 }
 
 
