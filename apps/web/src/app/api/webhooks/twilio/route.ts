@@ -1,13 +1,10 @@
 import { 
   parseTwilioWebhook, 
   validateTwilioSignature, 
-  getWebhookUrl, 
   createTwiMLResponse,
-  isWhatsAppWebhook
 } from '@/server/lib/twilio';
 import type { 
   TwilioIncomingMessage,
-  TwilioStatusCallback 
 } from '@/server/lib/twilio';
 import { chatbot } from '@/server/services/chatbot';
 import { getOrCreateWhatsAppUser } from '@/server/services/auth';
@@ -15,27 +12,10 @@ import { getOrCreateWhatsAppUser } from '@/server/services/auth';
 export const POST = async (request: Request) => {
   console.log('📞 Twilio webhook received');
   
-  // 1. Validate signature
-  const signature = request.headers.get('x-twilio-signature');
-  if (!signature) {
-    console.error('❌ Missing Twilio signature');
-    return new Response('Unauthorized', { status: 401 });
-  }
-
-  // Parse webhook data first (we need it for signature validation)
-  const clonedRequest = request.clone();
-  const formData = await clonedRequest.formData().catch(() => null);
-  if (!formData) {
-    console.error('❌ Failed to parse form data');
-    return new Response('Bad Request', { status: 400 });
-  }
-  
-  const params = Object.fromEntries(formData.entries());
-  const webhookUrl = getWebhookUrl(request);
-  const isValidSignature = validateTwilioSignature(params, signature, webhookUrl);
-  
+  // 1. Validate signature (utility handles headers, URL, and body)
+  const isValidSignature = await validateTwilioSignature(request.clone());
   if (!isValidSignature) {
-    console.error('❌ Invalid Twilio signature');
+    console.error('❌ Invalid or missing Twilio signature');
     return new Response('Unauthorized', { status: 401 });
   }
 
@@ -46,28 +26,11 @@ export const POST = async (request: Request) => {
     return new Response('Bad Request', { status: 400 });
   }
 
-  const { type, data, rawData } = webhookResult.value;
-  
-  // 3. Validate this is a WhatsApp webhook
-  if (!isWhatsAppWebhook(data)) {
-    console.warn('⚠️ Non-WhatsApp webhook received:', { From: data.From, To: data.To });
-    return new Response('OK', { status: 200 });
-  }
-  
-  console.log(`📱 WhatsApp webhook type: ${type}`);
+  const { data, rawData } = webhookResult.value;
+  console.log('📋 Raw data:', rawData);
 
-  // 4. Handle different webhook types
-  switch (type) {
-    case 'incoming_message':
-      return await handleIncomingMessage(data as TwilioIncomingMessage);
-      
-    case 'status_callback':
-      return handleStatusCallback(data as TwilioStatusCallback, rawData);
-      
-    default:
-      console.log(`🤷 Unknown webhook type: ${type}`);
-      return new Response('OK', { status: 200 });
-  }
+  // 3. Handle incoming WhatsApp message
+  return await handleIncomingMessage(data as TwilioIncomingMessage);
 };
 
 /**
@@ -104,7 +67,7 @@ const handleIncomingMessage = async (webhook: TwilioIncomingMessage) => {
   console.log(`👤 Processing for user: ${user.id}`);
 
   // Get chatbot response
-  const chatbotResult = await chatbot(user.id, Body);
+  const chatbotResult = await chatbot(user.id, Body || '');
   if (chatbotResult.isErr()) {
     console.error(`❌ Chatbot error: ${chatbotResult.error.message}`);
     return createTwiMLResponse("I'm having trouble processing your message. Please try again.");
@@ -114,30 +77,7 @@ const handleIncomingMessage = async (webhook: TwilioIncomingMessage) => {
   return createTwiMLResponse(chatbotResult.value);
 };
 
-/**
- * Handle status callbacks (just log for now)
- */
-const handleStatusCallback = (
-  webhook: TwilioStatusCallback, 
-  rawData: Record<string, any>
-) => {
-  const status = webhook.MessageStatus || webhook.SmsStatus || 'unknown';
-  console.log(`📊 Message status: ${webhook.MessageSid} -> ${status}`);
-  console.log('📋 Status details:', {
-    messageId: webhook.MessageSid,
-    status,
-    messageStatus: webhook.MessageStatus,
-    smsStatus: webhook.SmsStatus,
-    timestamp: new Date().toISOString(),
-    // Log any additional useful fields
-    ...(rawData.ErrorCode && { errorCode: rawData.ErrorCode }),
-    ...(rawData.ErrorMessage && { errorMessage: rawData.ErrorMessage }),
-    // Log all raw data for debugging
-    rawData: Object.keys(rawData).length < 10 ? rawData : 'too many fields',
-  });
-  
-  return new Response('OK', { status: 200 });
-};
+// Status callbacks are not handled by this endpoint
 
 export const GET = () => {
   return new Response('WhatsApp webhook endpoint', { status: 200 });

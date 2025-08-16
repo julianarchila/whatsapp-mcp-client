@@ -1,6 +1,6 @@
 import twilio from 'twilio';
 import { z } from 'zod';
-import { Result, ok, err } from 'neverthrow';
+import { ok, err } from 'neverthrow';
 import { env } from '@env';
 
 // Base Twilio webhook schema with all standard parameters
@@ -20,16 +20,6 @@ const TwilioBaseSchema = z.object({
   Body: z.string().optional(), // Text body, up to 1600 characters
   NumMedia: z.string().optional().default('0'), // Number of media items
   NumSegments: z.string().optional().default('1'), // Number of message segments
-  
-  // Geographic data (optional, based on phone number lookup)
-  FromCity: z.string().optional(),
-  FromState: z.string().optional(),
-  FromZip: z.string().optional(),
-  FromCountry: z.string().optional(),
-  ToCity: z.string().optional(),
-  ToState: z.string().optional(),
-  ToZip: z.string().optional(),
-  ToCountry: z.string().optional(),
   
   // API metadata
   ApiVersion: z.string().optional(),
@@ -61,94 +51,35 @@ const WhatsAppParametersSchema = z.object({
   OriginalRepliedMessageSender: z.string().optional(), // Sender of original message
   OriginalRepliedMessageSid: z.string().optional(), // SID of original message
   
-  // Click-to-WhatsApp advertisement parameters
-  ReferralBody: z.string().optional(), // Body text of the advertisement
-  ReferralHeadline: z.string().optional(), // Headline text of the advertisement
-  ReferralSourceId: z.string().optional(), // Meta/WhatsApp's ID of the advertisement
-  ReferralSourceType: z.string().optional(), // Type of the advertisement (e.g., "post")
-  ReferralSourceUrl: z.string().optional(), // URL referencing advertisement content
-  ReferralMediaId: z.string().optional(), // Meta/WhatsApp's ID of advertisement media
-  ReferralMediaContentType: z.string().optional(), // Media ContentType of advertisement
-  ReferralMediaUrl: z.string().optional(), // URL referencing advertisement media
-  ReferralNumMedia: z.string().optional(), // Number of media items in advertisement
-  ReferralCtwaClid: z.string().optional(), // Click to WhatsApp advertisement ID
-  
-  // Legacy/internal fields
-  ChannelPrefix: z.literal('whatsapp').optional(),
-  ChannelInstallSid: z.string().optional(),
-  ChannelToAddress: z.string().optional(),
-  StructuredMessage: z.string().optional(),
 }).catchall(z.string().optional());
 
-// Combined schemas for different webhook types
+// Incoming message schema (we only handle incoming messages for this endpoint)
 const TwilioIncomingMessageSchema = TwilioBaseSchema
   .extend(MediaParametersSchema.shape)
-  .extend(WhatsAppParametersSchema.shape)
-  .extend({
-    Body: z.string().min(1), // Incoming messages must have content
-  });
-
-const TwilioStatusCallbackSchema = TwilioBaseSchema
-  .extend(MediaParametersSchema.shape)
-  .extend(WhatsAppParametersSchema.shape)
-  .extend({
-    MessageStatus: z.string().optional(), // Status of the message
-    SmsStatus: z.string().optional(), // Legacy status field
-  });
-
-// Union type for webhook validation
-const TwilioWebhookSchema = z.union([
-  TwilioIncomingMessageSchema,
-  TwilioStatusCallbackSchema,
-]);
+  .extend(WhatsAppParametersSchema.shape);
 
 // Inferred types
 export type TwilioIncomingMessage = z.infer<typeof TwilioIncomingMessageSchema>;
-export type TwilioStatusCallback = z.infer<typeof TwilioStatusCallbackSchema>;
-export type TwilioWebhook = z.infer<typeof TwilioWebhookSchema>;
 
-// Webhook type discriminator
-export type TwilioWebhookType = 'incoming_message' | 'status_callback' | 'unknown';
-
-/**
- * Determine general Twilio webhook type
- */
-const determineTwilioWebhookType = (data: any): TwilioWebhookType => {
-  // Log the data for debugging
-  console.log('🔍 Twilio webhook type detection:', {
-    hasBody: !!data.Body,
-    hasMessageStatus: !!data.MessageStatus,
-    hasSmsStatus: !!data.SmsStatus,
-    bodyLength: data.Body?.length || 0,
-    from: data.From,
-    to: data.To,
-  });
-  
-  // Incoming messages have Body field with content (prioritize this check)
-  if (data.Body && data.Body.trim().length > 0) {
-    return 'incoming_message';
-  }
-  
-  // Status callbacks have status fields OR no meaningful body
-  if (data.MessageStatus || data.SmsStatus || !data.Body || data.Body.trim().length === 0) {
-    return 'status_callback';
-  }
-  
-  return 'unknown';
-};
+// We only support incoming messages in this endpoint
 
 
 
 /**
- * Validate Twilio webhook signature
+ * Validate Twilio webhook signature using the full Request
+ * The caller should pass a cloned Request so the body can be consumed here safely.
  */
-export const validateTwilioSignature = (
-  params: Record<string, any>,
-  signature: string,
-  url: string
-) => {
+export const validateTwilioSignature = async (request: Request): Promise<boolean> => {
+  const signature = request.headers.get('x-twilio-signature');
+  if (!signature) return false;
+
+  const formData = await request.formData().catch(() => null);
+  if (!formData) return false;
+
+  const params = Object.fromEntries(formData.entries());
+  const url = getWebhookUrl(request);
   const isValid = twilio.validateRequest(env.TWILIO_AUTH_TOKEN, signature, url, params);
-  return isValid ?? false;
+  return !!isValid;
 };
 
 /**
@@ -171,33 +102,22 @@ export const getWebhookUrl = (request: Request) => {
 };
 
 /**
- * Parse and validate general Twilio webhook
+ * Parse and validate Twilio incoming message webhook
  */
 export const parseTwilioWebhook = async (request: Request) => {
   const formData = await request.formData().catch(() => null);
   if (!formData) {
     return err('Failed to parse form data');
   }
-  
+
   const rawData = Object.fromEntries(formData.entries());
-  const webhookType = determineTwilioWebhookType(rawData);
-  
-  if (webhookType === 'unknown') {
-    return err(`Unknown Twilio webhook type. Data: ${JSON.stringify(rawData)}`);
-  }
-  
-  const schema = webhookType === 'incoming_message' 
-    ? TwilioIncomingMessageSchema 
-    : TwilioStatusCallbackSchema;
-    
-  const validationResult = schema.safeParse(rawData);
-  
+  const validationResult = TwilioIncomingMessageSchema.safeParse(rawData);
+
   if (!validationResult.success) {
-    return err(`Invalid Twilio ${webhookType} webhook: ${validationResult.error.message}`);
+    return err(`Invalid Twilio incoming message webhook: ${validationResult.error.message}`);
   }
-  
+
   return ok({
-    type: webhookType,
     data: validationResult.data,
     rawData,
   });
@@ -216,12 +136,7 @@ export const createTwiMLResponse = (message: string) => {
   });
 };
 
-/**
- * Check if webhook is from WhatsApp channel
- */
-export const isWhatsAppWebhook = (data: any): boolean => {
-  return data.From?.startsWith('whatsapp:') && data.To?.startsWith('whatsapp:');
-};
+// We only configured WhatsApp webhooks in Twilio, so no channel check is needed here
 
 /**
  * Extract media URLs from webhook data
