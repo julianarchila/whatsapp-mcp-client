@@ -29,22 +29,36 @@ export const saveMessage = (message: ModelMessage, conversationId: string) =>
 
 export const getOrCreateConversation = (userId: string) =>
   ResultAsync.fromPromise(
-    db.select().from(conversationTable).where(eq(conversationTable.userId, userId)).limit(1),
-    (error) => new ChatbotError('CONVERSATION_LOOKUP_FAILED', 'Failed to lookup conversation', error)
-  ).andThen((conversations) => {
-    if (conversations.length > 0) {
-      return ResultAsync.fromSafePromise(Promise.resolve(conversations[0].id));
-    }
+    (async () => {
+      const now = new Date();
+      const inserted = await db
+        .insert(conversationTable)
+        .values({ id: randomUUID(), userId, lastMessageAt: now })
+        .onConflictDoNothing({ target: conversationTable.userId })
+        .returning({ id: conversationTable.id });
 
-    return ResultAsync.fromPromise(
-      db.insert(conversationTable).values({
-        id: randomUUID(),
-        userId,
-        lastMessageAt: new Date(),
-      }).returning(),
-      (error) => new ChatbotError('CONVERSATION_CREATION_FAILED', 'Failed to create conversation', error)
-    ).map((result) => result[0].id);
-  });
+      if (inserted.length > 0) {
+        return inserted[0].id;
+      }
+
+      const existing = await db
+        .select({ id: conversationTable.id })
+        .from(conversationTable)
+        .where(eq(conversationTable.userId, userId))
+        .limit(1);
+
+      if (existing.length === 0) {
+        throw new Error('Conversation not found after upsert');
+      }
+      return existing[0].id;
+    })(),
+    (error) =>
+      new ChatbotError(
+        'CONVERSATION_CREATION_FAILED',
+        'Failed to create or fetch conversation',
+        error,
+      ),
+  );
 
 export const loadMessages = (conversationId: string) =>
   ResultAsync.fromPromise(
