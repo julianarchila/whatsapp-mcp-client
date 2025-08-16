@@ -2,9 +2,9 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Plus, CheckCircle2 } from 'lucide-react'
-import { FileText, Figma, GitBranch, Github, Trello, MessageCircle, Video, Palette } from 'lucide-react'
+import { Figma, GitBranch, Trello, MessageCircle, Video, Palette } from 'lucide-react'
+import { useIntegrations } from '@/hooks/use-integrations'
 
 // Herramientas disponibles para añadir
 export const AVAILABLE_TOOLS = [
@@ -13,58 +13,67 @@ export const AVAILABLE_TOOLS = [
         name: "Figma",
         description: "Plataforma de diseño y colaboración para equipos.",
         icon: Figma,
-        category: "Diseño",
-        verified: true,
+        apiUrl: "https://api.figma.com/v1",
     },
     {
         id: "linear",
         name: "Linear",
         description: "Seguimiento de incidencias y gestión de proyectos para equipos de desarrollo.",
         icon: GitBranch,
-        category: "Desarrollo",
         verified: true,
+        apiUrl: "https://api.linear.app/graphql",
     },
     {
         id: "trello",
         name: "Trello",
         description: "Gestión visual de proyectos con tableros, listas y tarjetas.",
         icon: Trello,
-        category: "Productividad",
         verified: true,
+        apiUrl: "https://api.trello.com/1",
     },
     {
         id: "discord",
         name: "Discord",
         description: "Comunicación por voz, video y texto para comunidades.",
         icon: MessageCircle,
-        category: "Comunicación",
         verified: true,
+        apiUrl: "https://discord.com/api/v10",
     },
     {
         id: "zoom",
         name: "Zoom",
         description: "Plataforma de videoconferencias y reuniones en línea.",
         icon: Video,
-        category: "Comunicación",
         verified: true,
+        apiUrl: "https://api.zoom.us/v2",
     },
     {
         id: "adobe-creative",
         name: "Adobe Creative Suite",
         description: "Herramientas creativas profesionales para diseño y creación de contenido.",
         icon: Palette,
-        category: "Diseño",
         verified: true,
+        apiUrl: "https://api.adobe.io",
     },
 ]
 
 interface DiscoverToolsModalProps {
     open: boolean
     onOpenChange: (open: boolean) => void
-    onAddTool: (toolId: string) => void
 }
 
-export function DiscoverToolsModal({ open, onOpenChange, onAddTool }: DiscoverToolsModalProps) {
+export function DiscoverToolsModal({ open, onOpenChange }: DiscoverToolsModalProps) {
+    const { createIntegration } = useIntegrations()
+
+    const createI = (tool: any) => {
+        onOpenChange(false)
+
+        createIntegration.mutate({
+            name: tool.name,
+            apiUrl: tool.apiUrl,
+        })
+    }
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
@@ -102,12 +111,9 @@ export function DiscoverToolsModal({ open, onOpenChange, onAddTool }: DiscoverTo
                                     </div>
                                 </div>
 
-                                <div className="flex items-center justify-between">
-                                    <Badge variant="secondary">
-                                        {tool.category}
-                                    </Badge>
+                                <div className="flex items-center justify-center">
                                     <Button
-                                        onClick={() => onAddTool(tool.id)}
+                                        onClick={() => createI(tool)}
                                         variant="outline"
                                         size="sm"
                                         className="transition-transform hover:scale-[1.01]"

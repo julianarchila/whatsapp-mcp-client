@@ -1,10 +1,9 @@
 "use client";
 
-import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { queryClient } from "@/utils/trpc";
 import { ThemeProvider } from "./theme-provider";
 import { Toaster } from "./ui/sonner";
+import { TRPCReactProvider } from "@/lib/trpc/client";
 
 
 export default function Providers({
@@ -19,10 +18,10 @@ export default function Providers({
       enableSystem
       disableTransitionOnChange
     >
-      <QueryClientProvider client={queryClient}>
+      <TRPCReactProvider>
         {children}
         <ReactQueryDevtools />
-      </QueryClientProvider>
+      </TRPCReactProvider>
       <Toaster richColors />
     </ThemeProvider>
   );

@@ -10,6 +10,7 @@ export const env = createEnv({
     NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
     TWILIO_ACCOUNT_SID: z.string().min(1),
     TWILIO_NUMBER: z.string().min(1),
+    ENCRYPTION_KEY: z.string().regex(/^[0-9a-fA-F]{64}$/, "Must be 64 hex chars (32 bytes)"),
   },
   client: {
     // NEXT_PUBLIC_PUBLISHABLE_KEY: z.string().min(1),

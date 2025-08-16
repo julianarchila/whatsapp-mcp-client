@@ -20,14 +20,20 @@ body {
 :root {
   --radius: 0.625rem;
   /* Brand palette aligned with landing page (emerald/teal) */
-  --brand-from: #059669; /* emerald-600 */
-  --brand-to: #0d9488;   /* teal-600 */
+  --brand-from: #059669;
+  /* emerald-600 */
+  --brand-to: #0d9488;
+  /* teal-600 */
   --brand-from-foreground: #ffffff;
   --brand-to-foreground: #ffffff;
-  --brand-surface: #ecfdf5; /* emerald-50 */
-  --brand-surface-foreground: #065f46; /* emerald-700 */
-  --brand-ring: #34d399; /* emerald-400 */
-  --brand-border: #a7f3d0; /* emerald-200 */
+  --brand-surface: #ecfdf5;
+  /* emerald-50 */
+  --brand-surface-foreground: #065f46;
+  /* emerald-700 */
+  --brand-ring: #34d399;
+  /* emerald-400 */
+  --brand-border: #a7f3d0;
+  /* emerald-200 */
 
   /* App surfaces */
   --background: oklch(1 0 0);
@@ -67,14 +73,21 @@ body {
 
 .dark {
   /* Brand adjustments for dark surfaces */
-  --brand-from: #34d399; /* emerald-400 */
-  --brand-to: #2dd4bf;   /* teal-400 */
-  --brand-from-foreground: #052e2b; /* deep teal for contrast on lighter brand */
+  --brand-from: #34d399;
+  /* emerald-400 */
+  --brand-to: #2dd4bf;
+  /* teal-400 */
+  --brand-from-foreground: #052e2b;
+  /* deep teal for contrast on lighter brand */
   --brand-to-foreground: #062b28;
-  --brand-surface: #062e2a; /* very dark teal-tinted */
-  --brand-surface-foreground: #a7f3d0; /* emerald-200 */
-  --brand-ring: #10b981; /* emerald-500 */
-  --brand-border: #115e59; /* teal-800 */
+  --brand-surface: #062e2a;
+  /* very dark teal-tinted */
+  --brand-surface-foreground: #a7f3d0;
+  /* emerald-200 */
+  --brand-ring: #10b981;
+  /* emerald-500 */
+  --brand-border: #115e59;
+  /* teal-800 */
 
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
@@ -151,6 +164,7 @@ body {
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
@@ -161,11 +175,13 @@ body {
   .bg-brand-gradient {
     background-image: linear-gradient(to right, var(--brand-from), var(--brand-to));
   }
+
   .from-brand {
     --tw-gradient-from: var(--brand-from) var(--tw-gradient-from-position);
     --tw-gradient-to: color-mix(in srgb, var(--brand-from), transparent 100%) var(--tw-gradient-to-position);
     --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
   }
+
   .to-brand {
     --tw-gradient-to: var(--brand-to) var(--tw-gradient-to-position);
   }

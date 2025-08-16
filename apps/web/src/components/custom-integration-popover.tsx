@@ -8,14 +8,14 @@ import { Label } from "@/components/ui/label"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Plus, AlertCircle } from 'lucide-react'
 import { toast } from "sonner"
-import z from "zod"
+import { z } from "zod"
+import { useIntegrations } from "@/hooks/use-integrations"
+import { ResultAsync } from "neverthrow"
 
-interface CustomIntegrationPopoverProps {
-    onAddTool: (toolData: { name: string; url: string; apiKey: string }) => void
-}
-
-export function CustomIntegrationPopover({ onAddTool }: CustomIntegrationPopoverProps) {
+export function CustomIntegrationPopover() {
     const [open, setOpen] = useState(false)
+
+    const { createIntegration, isCreating: isCreatingIntegration } = useIntegrations()
 
     const form = useForm({
         defaultValues: {
@@ -24,19 +24,24 @@ export function CustomIntegrationPopover({ onAddTool }: CustomIntegrationPopover
             apiKey: "",
         },
         onSubmit: async ({ value }) => {
-            try {
-                await new Promise(resolve => setTimeout(resolve, 1000))
+            const result = await ResultAsync.fromPromise(
+                createIntegration.mutateAsync({
+                    name: value.name,
+                    apiUrl: value.url,
+                    apiKey: value.apiKey
+                }),
+                (e) => e as Error
+            )
 
-                onAddTool(value)
-
-                toast.success("Tool added successfully!")
-
-                form.reset()
-                setOpen(false)
-            } catch (error) {
-                console.error("Error:", error)
-                toast.error("Error adding tool")
-            }
+            result.match(
+                () => {
+                    form.reset()
+                    setOpen(false)
+                },
+                (error) => {
+                    toast.error(error.message || "Error creating integration")
+                }
+            )
         },
         validators: {
             onSubmit: z.object({
@@ -59,6 +64,8 @@ export function CustomIntegrationPopover({ onAddTool }: CustomIntegrationPopover
             form.reset()
         }
     }
+
+    const isSubmitting = isCreatingIntegration
 
     return (
         <Popover open={open} onOpenChange={handleOpenChange}>
@@ -85,97 +92,97 @@ export function CustomIntegrationPopover({ onAddTool }: CustomIntegrationPopover
                         }}
                         className="space-y-3"
                     >
-                        <div>
-                            <form.Field name="name">
-                                {(field) => (
-                                    <div className="space-y-1">
-                                        <Label htmlFor={field.name} className="text-xs">
-                                            Name
-                                        </Label>
-                                        <Input
-                                            id={field.name}
-                                            name={field.name}
-                                            placeholder="My tool"
-                                            value={field.state.value}
-                                            onBlur={field.handleBlur}
-                                            onChange={(e) => field.handleChange(e.target.value)}
-                                            className={`h-8 text-sm ${field.state.meta.errors.length > 0
-                                                ? "border-red-500 focus-visible:ring-red-500"
-                                                : ""
-                                                }`}
-                                        />
-                                        {field.state.meta.errors.map((error) => (
-                                            <div key={error?.message} className="flex items-center gap-1 text-xs text-red-600">
-                                                <AlertCircle className="h-3 w-3" />
-                                                {error?.message}
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </form.Field>
-                        </div>
+                        {/* Name */}
+                        <form.Field name="name">
+                            {(field) => (
+                                <div className="space-y-1">
+                                    <Label htmlFor={field.name} className="text-xs">
+                                        Name
+                                    </Label>
+                                    <Input
+                                        id={field.name}
+                                        name={field.name}
+                                        placeholder="My tool"
+                                        value={field.state.value}
+                                        onBlur={field.handleBlur}
+                                        onChange={(e) => field.handleChange(e.target.value)}
+                                        className={`h-8 text-sm ${field.state.meta.errors.length > 0
+                                            ? "border-red-500 focus-visible:ring-red-500"
+                                            : ""
+                                            }`}
+                                    />
+                                    {field.state.meta.errors.map((error) => (
+                                        <div key={error?.message} className="flex items-center gap-1 text-xs text-red-600">
+                                            <AlertCircle className="h-3 w-3" />
+                                            {error?.message}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </form.Field>
 
-                        <div>
-                            <form.Field name="url">
-                                {(field) => (
-                                    <div className="space-y-1">
-                                        <Label htmlFor={field.name} className="text-xs">
-                                            API URL
-                                        </Label>
-                                        <Input
-                                            id={field.name}
-                                            name={field.name}
-                                            type="url"
-                                            placeholder="https://api.example.com/mcp"
-                                            value={field.state.value}
-                                            onBlur={field.handleBlur}
-                                            onChange={(e) => field.handleChange(e.target.value)}
-                                            className={`h-8 text-sm ${field.state.meta.errors.length > 0
-                                                ? "border-red-500 focus-visible:ring-red-500"
-                                                : ""
-                                                }`}
-                                        />
-                                        {field.state.meta.errors.map((error) => (
-                                            <div key={error?.message} className="flex items-center gap-1 text-xs text-red-600">
-                                                <AlertCircle className="h-3 w-3" />
-                                                {error?.message}
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </form.Field>
-                        </div>
+                        {/* URL */}
+                        <form.Field name="url">
+                            {(field) => (
+                                <div className="space-y-1">
+                                    <Label htmlFor={field.name} className="text-xs">
+                                        API URL
+                                    </Label>
+                                    <Input
+                                        id={field.name}
+                                        name={field.name}
+                                        type="url"
+                                        placeholder="https://api.example.com/mcp"
+                                        value={field.state.value}
+                                        onBlur={field.handleBlur}
+                                        onChange={(e) => field.handleChange(e.target.value)}
+                                        className={`h-8 text-sm ${field.state.meta.errors.length > 0
+                                            ? "border-red-500 focus-visible:ring-red-500"
+                                            : ""
+                                            }`}
+                                    />
+                                    {field.state.meta.errors.map((error) => (
+                                        <div key={error?.message} className="flex items-center gap-1 text-xs text-red-600">
+                                            <AlertCircle className="h-3 w-3" />
+                                            {error?.message}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </form.Field>
 
-                        <div>
-                            <form.Field name="apiKey">
-                                {(field) => (
-                                    <div className="space-y-1">
-                                        <Label htmlFor={field.name} className="text-xs">
-                                            API Key
-                                        </Label>
-                                        <Input
-                                            id={field.name}
-                                            name={field.name}
-                                            type="password"
-                                            placeholder="sk-..."
-                                            value={field.state.value}
-                                            onBlur={field.handleBlur}
-                                            onChange={(e) => field.handleChange(e.target.value)}
-                                            className={`h-8 text-sm ${field.state.meta.errors.length > 0
-                                                ? "border-red-500 focus-visible:ring-red-500"
-                                                : ""
-                                                }`}
-                                        />
-                                        {field.state.meta.errors.map((error) => (
-                                            <div key={error?.message} className="flex items-center gap-1 text-xs text-red-600">
-                                                <AlertCircle className="h-3 w-3" />
-                                                {error?.message}
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </form.Field>
-                        </div>
+                        {/* API Key */}
+                        <form.Field name="apiKey">
+                            {(field) => (
+                                <div className="space-y-1">
+                                    <Label htmlFor={field.name} className="text-xs">
+                                        API Key
+                                    </Label>
+                                    <Input
+                                        id={field.name}
+                                        name={field.name}
+                                        type="password"
+                                        placeholder="sk-..."
+                                        autoComplete="off"
+                                        inputMode="text"
+                                        spellCheck={false}
+                                        value={field.state.value}
+                                        onBlur={field.handleBlur}
+                                        onChange={(e) => field.handleChange(e.target.value)}
+                                        className={`h-8 text-sm ${field.state.meta.errors.length > 0
+                                            ? "border-red-500 focus-visible:ring-red-500"
+                                            : ""
+                                            }`}
+                                    />
+                                    {field.state.meta.errors.map((error) => (
+                                        <div key={error?.message} className="flex items-center gap-1 text-xs text-red-600">
+                                            <AlertCircle className="h-3 w-3" />
+                                            {error?.message}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </form.Field>
 
                         <div className="flex justify-end pt-2">
                             <form.Subscribe>
@@ -183,10 +190,10 @@ export function CustomIntegrationPopover({ onAddTool }: CustomIntegrationPopover
                                     <Button
                                         type="submit"
                                         size="sm"
-                                        disabled={!state.canSubmit || state.isSubmitting}
+                                        disabled={!state.canSubmit || isSubmitting}
                                         className="h-8"
                                     >
-                                        {state.isSubmitting ? "Adding..." : "Add"}
+                                        {isSubmitting ? "Adding..." : "Add"}
                                     </Button>
                                 )}
                             </form.Subscribe>

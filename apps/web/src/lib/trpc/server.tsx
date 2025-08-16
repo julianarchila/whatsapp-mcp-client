@@ -1,0 +1,65 @@
+import 'server-only';
+import { createTRPCProxyClient, httpBatchLink } from '@trpc/client';
+import { cache } from 'react';
+import { headers } from 'next/headers';
+import { makeQueryClient } from './query-client';
+import { type AppRouter } from '@/server/routers';
+import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
+
+// Create a stable getter for the query client
+export const getQueryClient = cache(makeQueryClient);
+
+function getBaseUrl() {
+  if (typeof window !== "undefined") return window.location.origin;
+  if (process.env.VERCEL_URL) {
+    const url = process.env.VERCEL_URL;
+    if (/^[a-zA-Z0-9.-]+\.vercel\.app$/.test(url)) {
+      return `https://${url}`;
+    }
+  };
+  return `http://localhost:${process.env.PORT ?? 3001}`;
+}
+
+/**
+ * Server-side tRPC client for RSC
+ */
+export const trpcServer = createTRPCProxyClient<AppRouter>({
+  links: [
+    httpBatchLink({
+      url: `${getBaseUrl()}/api/trpc`,
+      headers: async () => {
+        const heads = new Headers(await headers());
+        heads.set("x-trpc-source", "rsc");
+        return Object.fromEntries(heads.entries());
+      },
+    }),
+  ],
+});
+
+/**
+ * Hydration boundary for SSR
+ */
+export function HydrateClient(props: { children: React.ReactNode }) {
+  const queryClient = getQueryClient();
+  return (
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      {props.children}
+    </HydrationBoundary>
+  );
+}
+
+/**
+ * Helper function to prefetch data on server
+ * Usage: await prefetchData(['posts', 'getAll'], () => fetchPosts({ limit: 10 }))
+ */
+export async function prefetchData<TData = unknown>(
+  queryKey: string[],
+  queryFn: () => Promise<TData>
+) {
+  const queryClient = getQueryClient();
+
+  await queryClient.prefetchQuery<TData>({
+    queryKey,
+    queryFn,
+  });
+}
